@@ -35,6 +35,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--status", action="store_true",
         help="Print sync status summary",
     )
+    sync_parser.add_argument(
+        "--skip-features", action="store_true",
+        dest="skip_features",
+        help="Skip feature computation after game sync",
+    )
+
+    features_parser = sub.add_parser("features", help="Feature computation commands")
+    features_parser.add_argument(
+        "--compute", action="store_true",
+        help="Compute/backfill all features for historical games",
+    )
 
     return parser
 
@@ -81,13 +92,22 @@ def main(argv: list[str] | None = None):
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if args.command != "sync":
+    if args.command not in ("sync", "features"):
         parser.print_help()
         sys.exit(1)
 
     session = _create_session()
 
     try:
+        if args.command == "features":
+            if args.compute:
+                from hermes.data.features.engine import backfill_features
+                results = backfill_features(session)
+                print(f"Feature backfill complete: {results}")
+            else:
+                parser.parse_args(["features", "--help"])
+            return
+
         if args.historical:
             from hermes.data.adapters.nba_api_adapter import NbaApiAdapter
             from hermes.data.ingestion.rate_limiter import RateLimiter
@@ -113,7 +133,10 @@ def main(argv: list[str] | None = None):
             )
             nba_adapter = NbaApiAdapter(limiter)
             injury_adapter = NbaInjuriesAdapter()
-            results = run_daily_sync(nba_adapter, injury_adapter, session)
+            results = run_daily_sync(
+                nba_adapter, injury_adapter, session,
+                skip_features=args.skip_features,
+            )
             print(f"Daily sync complete: {results}")
 
         elif args.status:

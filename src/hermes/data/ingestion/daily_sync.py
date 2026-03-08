@@ -35,6 +35,7 @@ def run_daily_sync(
     injury_adapter: InjuryDataAdapter,
     session: Session,
     season: str | None = None,
+    skip_features: bool = False,
 ) -> dict[str, int]:
     """Run incremental sync for all entity types.
 
@@ -76,6 +77,7 @@ def run_daily_sync(
         errors.append("standings")
 
     # 3. Sync new games since last sync
+    new_game_ids: list = []
     try:
         last_game_sync = _get_last_sync(session, "daily_games")
         df = nba_adapter.get_season_games(season)
@@ -121,6 +123,17 @@ def run_daily_sync(
     except Exception:
         logger.exception("Failed to sync injuries")
         errors.append("injuries")
+
+    # 4.5. Compute features for newly synced games
+    if not skip_features and new_game_ids:
+        try:
+            from hermes.data.features.engine import compute_all_features_for_games
+            compute_all_features_for_games(session, new_game_ids)
+            results["features"] = len(new_game_ids)
+            logger.info("Computed features for %d games", len(new_game_ids))
+        except Exception:
+            logger.exception("Failed to compute features")
+            errors.append("features")
 
     # 5. Summary log
     session.add(SyncLog(
