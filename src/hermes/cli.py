@@ -47,6 +47,41 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compute/backfill all features for historical games",
     )
 
+    # Predict subcommand
+    predict_parser = sub.add_parser("predict", help="Prediction commands")
+    predict_group = predict_parser.add_mutually_exclusive_group(required=True)
+    predict_group.add_argument(
+        "--train", action="store_true",
+        help="Train all prediction models from historical data",
+    )
+    predict_group.add_argument(
+        "--today", action="store_true",
+        help="Generate predictions for today's games",
+    )
+    predict_group.add_argument(
+        "--resolve", action="store_true",
+        help="Resolve outcomes for completed games",
+    )
+    predict_parser.add_argument(
+        "--seasons", type=str, default=None,
+        help="Comma-separated seasons for training (e.g. 2022-23,2023-24,2024-25)",
+    )
+
+    # Metrics subcommand
+    metrics_parser = sub.add_parser("metrics", help="View prediction accuracy metrics")
+    metrics_parser.add_argument(
+        "--type", type=str, default=None, dest="prediction_type",
+        help="Filter by prediction type (game_winner, game_spread, game_total, player_*)",
+    )
+    metrics_parser.add_argument(
+        "--start-date", type=str, default=None, dest="start_date",
+        help="Start date filter (YYYY-MM-DD)",
+    )
+    metrics_parser.add_argument(
+        "--end-date", type=str, default=None, dest="end_date",
+        help="End date filter (YYYY-MM-DD)",
+    )
+
     return parser
 
 
@@ -82,6 +117,58 @@ def _print_status(session):
         print(f"{row.entity_type:<25} {str(row.last_sync):<25} {row.total_records:<15}")
 
 
+def _handle_predict(session, args):
+    """Handle predict subcommand."""
+    if args.train:
+        from hermes.models.training import train_all_models
+
+        seasons = None
+        if args.seasons:
+            seasons = [s.strip() for s in args.seasons.split(",")]
+
+        result = train_all_models(session, seasons=seasons)
+        print(f"Training complete:")
+        print(f"  Model version: {result['model_version']}")
+        print(f"  Game samples: {result['game_samples']}")
+        print(f"  Player samples: {result['player_samples']}")
+
+    elif args.today:
+        from hermes.models.prediction_engine import PredictionEngine
+
+        engine = PredictionEngine(session)
+        result = engine.predict_today()
+        print(f"Predictions generated for {result['date']}:")
+        print(f"  Games predicted: {result['games_predicted']}")
+        print(f"  Players predicted: {result['players_predicted']}")
+
+    elif args.resolve:
+        from hermes.models.outcome_resolver import resolve_outcomes
+
+        count = resolve_outcomes(session)
+        print(f"Resolved {count} prediction outcomes")
+
+
+def _handle_metrics(session, args):
+    """Handle metrics subcommand."""
+    from datetime import date as date_type
+    from hermes.models.metrics import compute_metrics, format_metrics_report
+
+    start_date = None
+    end_date = None
+    if args.start_date:
+        start_date = date_type.fromisoformat(args.start_date)
+    if args.end_date:
+        end_date = date_type.fromisoformat(args.end_date)
+
+    metrics = compute_metrics(
+        session,
+        prediction_type=args.prediction_type,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    print(format_metrics_report(metrics))
+
+
 def main(argv: list[str] | None = None):
     """Main CLI entry point."""
     logging.basicConfig(
@@ -92,13 +179,21 @@ def main(argv: list[str] | None = None):
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if args.command not in ("sync", "features"):
+    if args.command not in ("sync", "features", "predict", "metrics"):
         parser.print_help()
         sys.exit(1)
 
     session = _create_session()
 
     try:
+        if args.command == "predict":
+            _handle_predict(session, args)
+            return
+
+        if args.command == "metrics":
+            _handle_metrics(session, args)
+            return
+
         if args.command == "features":
             if args.compute:
                 from hermes.data.features.engine import backfill_features
