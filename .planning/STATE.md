@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-08T21:16:00Z"
+last_updated: "2026-03-08T21:22:00Z"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State: HermesAnalysis
@@ -23,9 +23,9 @@ progress:
 ## Current Position
 
 **Phase**: 3 - Prediction Models
-**Plan**: 1 of 3
-**Status**: Plan 03-01 complete, ready for 03-02
-**Progress**: ################# 9/9 plans complete
+**Plan**: 3 of 3 (phase nearly complete)
+**Status**: Plan 03-03 complete, ready for 03-04
+**Progress**: ################# 12/12 plans complete
 
 ### Phase Checklist
 - [x] Phase 1: Data Foundation
@@ -39,9 +39,9 @@ progress:
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 9 |
-| Plans attempted | 9 |
-| Requirements delivered | 10/32 |
+| Plans completed | 12 |
+| Plans attempted | 12 |
+| Requirements delivered | 13/32 |
 | Phases completed | 2/6 |
 
 ## Accumulated Context
@@ -68,6 +68,13 @@ progress:
 - 2026-03-08: ORB fallback: when offensive_rebounds NULL, simplified possession formula
 - 2026-03-08: DummyPredictor at module level for joblib pickle compatibility (local classes unpicklable)
 - 2026-03-08: scikit-learn pinned <1.8 -- 1.8.0 drops Python 3.10 support
+- 2026-03-08: LogisticRegression naturally calibrated -- no CalibratedClassifierCV wrapper needed for win probability
+- 2026-03-08: Quantile regression (GBR with quantile loss) for totals CI -- no normality assumption
+- 2026-03-08: Shared GAME_FEATURE_COLS between GamePredictor and TotalsPredictor for consistency
+- 2026-03-08: Per-stat feature sets for player props (not shared) -- domain-appropriate feature selection
+- 2026-03-08: fg3m uses fg3_pct rolling averages + matchup_avg_fg_pct as proxy (no fg3m-specific matchup stats exist)
+- 2026-03-08: Matchup features zeroed when matchup_games_played is 0 or None (graceful fallback to rolling avgs)
+- 2026-03-08: CI widening for sparse data via sqrt(20/games_available_20) multiplier
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -90,13 +97,13 @@ progress:
 
 ### Last Session
 - **Date**: 2026-03-08
-- **What happened**: Completed 03-01-PLAN.md -- Prediction DB schema (Prediction + PredictionOutcome tables), BasePredictor ABC with PredictionResult dataclass, scikit-learn 1.7.2, joblib save/load, features_to_array helper. 12 new tests, 153 total passing.
-- **Where stopped**: Completed 03-01-PLAN.md
+- **What happened**: Completed 03-03-PLAN.md -- PlayerPropPredictor for points/rebounds/assists/fg3m with quantile regression CIs, matchup-aware prediction, sparse data CI widening. PlayerPropsPredictor wrapper with train_all/predict_all/save/load. 10 new tests, 32 model tests passing.
+- **Where stopped**: Completed 03-03-PLAN.md
 
 ### Next Session
-- **Start with**: 03-02-PLAN.md (game prediction models -- game winner, spread, total)
-- **Context needed**: BasePredictor from 03-01, Prediction model, get_features() from 02-04
+- **Start with**: 03-04-PLAN.md (prediction engine, outcome resolver, accuracy metrics, CLI integration)
+- **Context needed**: BasePredictor, GamePredictor, TotalsPredictor, PlayerPropPredictor from 03-01/02/03
 
 ---
 *State initialized: 2026-03-07*
-*Last updated: 2026-03-08T21:16Z*
+*Last updated: 2026-03-08T21:22Z*

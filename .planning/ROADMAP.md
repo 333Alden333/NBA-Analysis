@@ -66,8 +66,8 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Prediction DB models, ML dependencies, BasePredictor framework
-- [ ] 03-02-PLAN.md — Game winner + totals prediction models with confidence intervals
-- [ ] 03-03-PLAN.md — Player prop predictions (points/rebounds/assists/3PM) with matchup analysis
+- [x] 03-02-PLAN.md — Game winner + totals prediction models with confidence intervals
+- [x] 03-03-PLAN.md — Player prop predictions (points/rebounds/assists/3PM) with matchup analysis
 - [ ] 03-04-PLAN.md — Prediction engine, outcome resolver, accuracy metrics, CLI integration
 
 ### Phase 4: Dashboard
@@ -110,7 +110,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 4/4 | Complete | 2026-03-08 |
 | 2. Feature Engineering | 3/4 | In progress | - |
-| 3. Prediction Models | 1/4 | In progress | - |
+| 3. Prediction Models | 3/4 | In progress | - |
 | 4. Dashboard | 0/? | Not started | - |
 | 5. Hermes Agent | 0/? | Not started | - |
 | 6. Computer Vision | 0/? | Not started | - |

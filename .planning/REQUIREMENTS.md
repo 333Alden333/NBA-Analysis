@@ -27,13 +27,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Predictions
 
-- [ ] **PRED-01**: Model predicts game winner with probability and spread
-- [ ] **PRED-02**: Model predicts over/under total combined score
-- [ ] **PRED-03**: Model predicts individual player props (points, rebounds, assists, 3PM)
+- [x] **PRED-01**: Model predicts game winner with probability and spread
+- [x] **PRED-02**: Model predicts over/under total combined score
+- [x] **PRED-03**: Model predicts individual player props (points, rebounds, assists, 3PM)
 - [x] **PRED-04**: All predictions include confidence intervals
 - [x] **PRED-05**: System tracks every prediction vs actual outcome in database
 - [ ] **PRED-06**: System displays model accuracy metrics (hit rate, calibration, Brier score)
-- [ ] **PRED-07**: Matchup-specific analysis shows how player historically performs against opponent
+- [x] **PRED-07**: Matchup-specific analysis shows how player historically performs against opponent
 
 ### Computer Vision
 
@@ -107,13 +107,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FEAT-03 | Phase 2 | Complete |
 | FEAT-04 | Phase 2 | Complete |
 | FEAT-05 | Phase 2 | Pending |
-| PRED-01 | Phase 3 | Pending |
-| PRED-02 | Phase 3 | Pending |
-| PRED-03 | Phase 3 | Pending |
+| PRED-01 | Phase 3 | Complete |
+| PRED-02 | Phase 3 | Complete |
+| PRED-03 | Phase 3 | Complete |
 | PRED-04 | Phase 3 | Complete |
 | PRED-05 | Phase 3 | Complete |
 | PRED-06 | Phase 3 | Pending |
-| PRED-07 | Phase 3 | Pending |
+| PRED-07 | Phase 3 | Complete |
 | CV-01 | Phase 6 | Pending |
 | CV-02 | Phase 6 | Pending |
 | CV-03 | Phase 6 | Pending |
@@ -135,4 +135,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-07*
-*Last updated: 2026-03-07 after roadmap creation*
+*Last updated: 2026-03-08*
