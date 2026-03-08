@@ -44,7 +44,13 @@ Plans:
   3. Matchup features exist showing Player X historical performance against Team Y defense
   4. Team-level features (pace, offensive/defensive rating, rest days) are computed for every team-game record
   5. A temporal validation check confirms zero future data leakage across the entire feature set
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Feature table models (4 tables), Alembic migration, test fixtures and stubs
+- [ ] 02-02-PLAN.md — Rolling averages (FEAT-01) + advanced stats (FEAT-02) with tests
+- [ ] 02-03-PLAN.md — Matchup features (FEAT-03) + team features (FEAT-04) with tests
+- [ ] 02-04-PLAN.md — Feature engine orchestrator, CLI integration, temporal leakage tests (FEAT-05), get_features() API
 
 ### Phase 3: Prediction Models
 **Goal**: The system produces calibrated, tracked predictions for games, totals, and player props
@@ -97,7 +103,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 4/4 | Complete | 2026-03-08 |
-| 2. Feature Engineering | 0/? | Not started | - |
+| 2. Feature Engineering | 0/4 | In progress | - |
 | 3. Prediction Models | 0/? | Not started | - |
 | 4. Dashboard | 0/? | Not started | - |
 | 5. Hermes Agent | 0/? | Not started | - |
