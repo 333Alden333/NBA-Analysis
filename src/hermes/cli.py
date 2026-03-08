@@ -103,7 +103,7 @@ def main(argv: list[str] | None = None):
 
         elif args.daily:
             from hermes.data.adapters.nba_api_adapter import NbaApiAdapter
-            from hermes.data.adapters.nba_injuries_adapter import NbaInjuriesAdapter
+            from hermes.data.adapters.injuries_adapter import NbaInjuriesAdapter
             from hermes.data.ingestion.rate_limiter import RateLimiter
             from hermes.data.ingestion.daily_sync import run_daily_sync
 
