@@ -13,7 +13,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DATA-02**: System syncs team stats and standings daily
 - [ ] **DATA-03**: System syncs game results and box scores daily
 - [ ] **DATA-04**: System ingests 3+ seasons of historical data for ML training
-- [ ] **DATA-05**: System integrates current injury reports into player/team data
+- [x] **DATA-05**: System integrates current injury reports into player/team data
 - [x] **DATA-06**: Data source adapter pattern allows swapping nba_api for alternatives without rewriting consumers
 - [x] **DATA-07**: Local SQLite database stores all player, team, game, and injury data
 
@@ -99,7 +99,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-02 | Phase 1 | Pending |
 | DATA-03 | Phase 1 | Pending |
 | DATA-04 | Phase 1 | Pending |
-| DATA-05 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Complete |
 | DATA-07 | Phase 1 | Complete |
 | FEAT-01 | Phase 2 | Pending |

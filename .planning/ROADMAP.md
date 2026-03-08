@@ -31,7 +31,7 @@
 Plans:
 - [x] 01-01-PLAN.md — Project setup, DB schema (10 models), adapter interfaces, rate limiter, Alembic
 - [ ] 01-02-PLAN.md — nba_api adapter + player/team/game sync functions
-- [ ] 01-03-PLAN.md — Injury adapter (nbainjuries) + injury sync
+- [x] 01-03-PLAN.md — Injury adapter (nbainjuries) + injury sync
 - [ ] 01-04-PLAN.md — Historical loader (3 seasons, checkpoint/resume) + daily sync orchestrator + CLI
 
 ### Phase 2: Feature Engineering
