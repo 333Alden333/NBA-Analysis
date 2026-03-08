@@ -1,8 +1,21 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-03-08T16:22:17Z"
+progress:
+  total_phases: 6
+  completed_phases: 1
+  total_plans: 8
+  completed_plans: 5
+---
+
 # Project State: HermesAnalysis
 
 ## Project Reference
 - **Core value**: Accurate, current predictions backed by real data
-- **Current focus**: Phase 1 - Data Foundation
+- **Current focus**: Phase 2 - Feature Engineering
 - **Project file**: `.planning/PROJECT.md`
 - **Roadmap file**: `.planning/ROADMAP.md`
 - **Requirements file**: `.planning/REQUIREMENTS.md`
@@ -10,9 +23,9 @@
 ## Current Position
 
 **Phase**: 2 - Feature Engineering
-**Plan**: 1 of ?
-**Status**: Phase 1 complete, ready for Phase 2
-**Progress**: ########## 4/4 plans complete
+**Plan**: 2 of 4
+**Status**: Plan 02-01 complete, ready for 02-02
+**Progress**: ############ 5/8 plans complete
 
 ### Phase Checklist
 - [x] Phase 1: Data Foundation
@@ -26,8 +39,8 @@
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 4 |
-| Plans attempted | 4 |
+| Plans completed | 5 |
+| Plans attempted | 5 |
 | Requirements delivered | 5/32 |
 | Phases completed | 1/6 |
 
@@ -44,6 +57,8 @@
 - 2026-03-08: Game IDs tracked per-game in SyncLog for fine-grained checkpoint/resume (entity_type=historical_game_detail)
 - 2026-03-08: Daily sync filters games by date string comparison against last sync timestamp
 - 2026-03-08: CLI uses argparse with sync subcommand (no external dependency)
+- 2026-03-08: Explicit column definitions (not dynamic) for all 36 rolling stat columns -- clarity over DRY
+- 2026-03-08: Factory fixtures as standalone functions (not class-based) for composability
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -66,13 +81,13 @@
 
 ### Last Session
 - **Date**: 2026-03-08
-- **What happened**: Completed 01-04-PLAN.md -- historical loader, daily sync orchestrator, CLI entry points. Phase 1 complete (4/4 plans). 16 new tests, 108+ total.
-- **Where stopped**: Completed 01-04-PLAN.md (Phase 1 complete)
+- **What happened**: Completed 02-01-PLAN.md -- 4 feature table models, Alembic migration, 26 test stubs, factory fixtures. 108 tests passing, 26 skipped.
+- **Where stopped**: Completed 02-01-PLAN.md
 
 ### Next Session
-- **Start with**: Phase 2 - Feature Engineering planning
-- **Context needed**: All data models and sync functions from Phase 1
+- **Start with**: 02-02-PLAN.md (rolling averages + advanced stats computation)
+- **Context needed**: Feature models from 02-01, test fixtures in tests/data/conftest.py
 
 ---
 *State initialized: 2026-03-07*
-*Last updated: 2026-03-08T05:00Z*
+*Last updated: 2026-03-08T16:22Z*
