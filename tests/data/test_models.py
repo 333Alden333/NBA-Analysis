@@ -43,7 +43,7 @@ class TestTableCreation:
     def test_ten_tables_total(self, engine):
         inspector = inspect(engine)
         table_names = inspector.get_table_names()
-        assert len(table_names) == 10
+        assert len(table_names) == 14
 
 
 class TestRawJsonColumns:
