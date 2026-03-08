@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-08T16:22:17Z"
+last_updated: "2026-03-08T16:28:35Z"
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 7
 ---
 
 # Project State: HermesAnalysis
@@ -23,9 +23,9 @@ progress:
 ## Current Position
 
 **Phase**: 2 - Feature Engineering
-**Plan**: 3 of 4
-**Status**: Plan 02-02 complete, ready for 02-03
-**Progress**: ############## 6/8 plans complete
+**Plan**: 4 of 4
+**Status**: Plan 02-03 complete, ready for 02-04
+**Progress**: ################ 7/8 plans complete
 
 ### Phase Checklist
 - [x] Phase 1: Data Foundation
@@ -39,9 +39,9 @@ progress:
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 6 |
-| Plans attempted | 6 |
-| Requirements delivered | 5/32 |
+| Plans completed | 7 |
+| Plans attempted | 7 |
+| Requirements delivered | 8/32 |
 | Phases completed | 1/6 |
 
 ## Accumulated Context
@@ -62,6 +62,10 @@ progress:
 - 2026-03-08: Per-game percentage averaging (mean of FG% per game, not aggregate FGM/FGA) per NBA analytics convention
 - 2026-03-08: Shift-by-1 rolling implementation for temporal discipline
 - 2026-03-08: Pure formula functions separated from DB logic for TS%, USG%, PER testability
+- 2026-03-08: 3-year lookback window for matchup history (approximate via timedelta, not season parsing)
+- 2026-03-08: DRtg uses team possessions (not opponent possessions) per Basketball-Reference convention
+- 2026-03-08: season_win_pct is None for first game of season (no prior games to compute from)
+- 2026-03-08: ORB fallback: when offensive_rebounds NULL, simplified possession formula
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -84,12 +88,12 @@ progress:
 
 ### Last Session
 - **Date**: 2026-03-08
-- **What happened**: Completed 02-02-PLAN.md -- rolling averages (12 stats x 3 windows) and advanced stats (TS%, USG%, PER). 11 new tests, 124 total passing.
-- **Where stopped**: Completed 02-02-PLAN.md
+- **What happened**: Completed 02-03-PLAN.md -- matchup features (player-vs-team history) and team features (pace, ORtg, DRtg, rest, win pct). 16 new tests, 135 total passing.
+- **Where stopped**: Completed 02-03-PLAN.md
 
 ### Next Session
-- **Start with**: 02-03-PLAN.md (matchup features + team features)
-- **Context needed**: Rolling/advanced feature modules from 02-02, models from 02-01
+- **Start with**: 02-04-PLAN.md (feature engine orchestrator, CLI integration, temporal leakage tests)
+- **Context needed**: All feature modules from 02-01/02-02/02-03, models from 02-01
 
 ---
 *State initialized: 2026-03-07*
