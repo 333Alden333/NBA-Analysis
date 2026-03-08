@@ -30,8 +30,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **PRED-01**: Model predicts game winner with probability and spread
 - [ ] **PRED-02**: Model predicts over/under total combined score
 - [ ] **PRED-03**: Model predicts individual player props (points, rebounds, assists, 3PM)
-- [ ] **PRED-04**: All predictions include confidence intervals
-- [ ] **PRED-05**: System tracks every prediction vs actual outcome in database
+- [x] **PRED-04**: All predictions include confidence intervals
+- [x] **PRED-05**: System tracks every prediction vs actual outcome in database
 - [ ] **PRED-06**: System displays model accuracy metrics (hit rate, calibration, Brier score)
 - [ ] **PRED-07**: Matchup-specific analysis shows how player historically performs against opponent
 
@@ -110,8 +110,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRED-01 | Phase 3 | Pending |
 | PRED-02 | Phase 3 | Pending |
 | PRED-03 | Phase 3 | Pending |
-| PRED-04 | Phase 3 | Pending |
-| PRED-05 | Phase 3 | Pending |
+| PRED-04 | Phase 3 | Complete |
+| PRED-05 | Phase 3 | Complete |
 | PRED-06 | Phase 3 | Pending |
 | PRED-07 | Phase 3 | Pending |
 | CV-01 | Phase 6 | Pending |
