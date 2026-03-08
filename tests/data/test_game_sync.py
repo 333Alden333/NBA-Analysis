@@ -42,8 +42,9 @@ def db_session():
     Base.metadata.create_all(eng)
     Session = sessionmaker(bind=eng)
     sess = Session()
-    # Seed FK targets
+    # Seed FK targets -- order matters for FK constraints
     sess.add(Team(team_id=1610612744, full_name="Golden State Warriors"))
+    sess.flush()
     sess.add(Player(player_id=201939, full_name="Stephen Curry", team_id=1610612744))
     sess.add(Game(game_id="0022400100", season="2024-25"))
     sess.commit()
