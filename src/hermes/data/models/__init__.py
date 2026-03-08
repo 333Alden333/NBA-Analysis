@@ -15,6 +15,7 @@ from .player_rolling_stats import PlayerRollingStats
 from .player_advanced_stats import PlayerAdvancedStats
 from .matchup_stats import MatchupStats
 from .team_features import TeamFeatures
+from .prediction import Prediction, PredictionOutcome
 
 __all__ = [
     "Base",
@@ -34,4 +35,6 @@ __all__ = [
     "PlayerAdvancedStats",
     "MatchupStats",
     "TeamFeatures",
+    "Prediction",
+    "PredictionOutcome",
 ]
