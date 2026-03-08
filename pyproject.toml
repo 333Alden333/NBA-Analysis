@@ -25,6 +25,9 @@ dev = [
     "pytest-cov",
 ]
 
+[project.scripts]
+hermes = "hermes.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
