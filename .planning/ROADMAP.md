@@ -9,7 +9,7 @@
 
 - [x] **Phase 1: Data Foundation** - Local database with daily NBA data sync pipeline
 - [ ] **Phase 2: Feature Engineering** - ML-ready features with temporal anti-leakage discipline
-- [ ] **Phase 3: Prediction Models** - Game, totals, and player prop predictions with tracking
+- [x] **Phase 3: Prediction Models** - Game, totals, and player prop predictions with tracking
 - [ ] **Phase 4: Dashboard** - Streamlit web interface surfacing predictions and stats
 - [ ] **Phase 5: Hermes Agent** - Natural language queries, CLI TUI, and learning loop
 - [ ] **Phase 6: Computer Vision** - Player detection and tracking from game footage
@@ -68,7 +68,7 @@ Plans:
 - [x] 03-01-PLAN.md — Prediction DB models, ML dependencies, BasePredictor framework
 - [x] 03-02-PLAN.md — Game winner + totals prediction models with confidence intervals
 - [x] 03-03-PLAN.md — Player prop predictions (points/rebounds/assists/3PM) with matchup analysis
-- [ ] 03-04-PLAN.md — Prediction engine, outcome resolver, accuracy metrics, CLI integration
+- [x] 03-04-PLAN.md — Prediction engine, outcome resolver, accuracy metrics, CLI integration
 
 ### Phase 4: Dashboard
 **Goal**: Users can browse today's predictions, player/team stats, and model performance through a web interface
@@ -110,7 +110,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 4/4 | Complete | 2026-03-08 |
 | 2. Feature Engineering | 3/4 | In progress | - |
-| 3. Prediction Models | 3/4 | In progress | - |
+| 3. Prediction Models | 4/4 | Complete | 2026-03-08 |
 | 4. Dashboard | 0/? | Not started | - |
 | 5. Hermes Agent | 0/? | Not started | - |
 | 6. Computer Vision | 0/? | Not started | - |

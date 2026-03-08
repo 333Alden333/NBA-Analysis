@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-08T21:22:00Z"
+last_updated: "2026-03-08T21:32:00Z"
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
+  completed_phases: 3
+  total_plans: 13
+  completed_plans: 13
 ---
 
 # Project State: HermesAnalysis
@@ -22,15 +22,15 @@ progress:
 
 ## Current Position
 
-**Phase**: 3 - Prediction Models
-**Plan**: 3 of 3 (phase nearly complete)
-**Status**: Plan 03-03 complete, ready for 03-04
-**Progress**: ################# 12/12 plans complete
+**Phase**: 3 - Prediction Models (COMPLETE)
+**Plan**: 4 of 4 (phase complete)
+**Status**: Phase 3 complete, ready for Phase 4
+**Progress**: ################## 13/13 plans complete
 
 ### Phase Checklist
 - [x] Phase 1: Data Foundation
 - [ ] Phase 2: Feature Engineering
-- [ ] Phase 3: Prediction Models
+- [x] Phase 3: Prediction Models
 - [ ] Phase 4: Dashboard
 - [ ] Phase 5: Hermes Agent
 - [ ] Phase 6: Computer Vision
@@ -39,10 +39,10 @@ progress:
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 12 |
-| Plans attempted | 12 |
-| Requirements delivered | 13/32 |
-| Phases completed | 2/6 |
+| Plans completed | 13 |
+| Plans attempted | 13 |
+| Requirements delivered | 15/32 |
+| Phases completed | 3/6 |
 
 ## Accumulated Context
 
@@ -75,6 +75,10 @@ progress:
 - 2026-03-08: fg3m uses fg3_pct rolling averages + matchup_avg_fg_pct as proxy (no fg3m-specific matchup stats exist)
 - 2026-03-08: Matchup features zeroed when matchup_games_played is 0 or None (graceful fallback to rolling avgs)
 - 2026-03-08: CI widening for sparse data via sqrt(20/games_available_20) multiplier
+- 2026-03-08: Mock model loading via __new__ bypass in tests for clean isolation
+- 2026-03-08: Brier score ONLY for game_winner (binary); MAE/RMSE for regression types
+- 2026-03-08: Manual calibration binning for transparency (not sklearn.calibration)
+- 2026-03-08: fg3m stat maps to "player_3pm" prediction type for sports terminology consistency
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -97,13 +101,13 @@ progress:
 
 ### Last Session
 - **Date**: 2026-03-08
-- **What happened**: Completed 03-03-PLAN.md -- PlayerPropPredictor for points/rebounds/assists/fg3m with quantile regression CIs, matchup-aware prediction, sparse data CI widening. PlayerPropsPredictor wrapper with train_all/predict_all/save/load. 10 new tests, 32 model tests passing.
-- **Where stopped**: Completed 03-03-PLAN.md
+- **What happened**: Completed 03-04-PLAN.md -- PredictionEngine, training pipeline, outcome resolver, metrics module (Brier/MAE/RMSE/CI coverage/calibration), CLI predict/metrics subcommands. 19 new tests, 196 total passing.
+- **Where stopped**: Completed 03-04-PLAN.md (Phase 3 complete)
 
 ### Next Session
-- **Start with**: 03-04-PLAN.md (prediction engine, outcome resolver, accuracy metrics, CLI integration)
-- **Context needed**: BasePredictor, GamePredictor, TotalsPredictor, PlayerPropPredictor from 03-01/02/03
+- **Start with**: Phase 4 - Dashboard
+- **Context needed**: All Phase 3 models (GamePredictor, TotalsPredictor, PlayerPropsPredictor, PredictionEngine, metrics)
 
 ---
 *State initialized: 2026-03-07*
-*Last updated: 2026-03-08T21:22Z*
+*Last updated: 2026-03-08T21:32Z*
