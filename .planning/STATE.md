@@ -9,13 +9,13 @@
 
 ## Current Position
 
-**Phase**: 1 - Data Foundation
-**Plan**: 4 of 4
-**Status**: In progress
-**Progress**: #######░░░ 3/4 plans complete
+**Phase**: 2 - Feature Engineering
+**Plan**: 1 of ?
+**Status**: Phase 1 complete, ready for Phase 2
+**Progress**: ########## 4/4 plans complete
 
 ### Phase Checklist
-- [ ] Phase 1: Data Foundation
+- [x] Phase 1: Data Foundation
 - [ ] Phase 2: Feature Engineering
 - [ ] Phase 3: Prediction Models
 - [ ] Phase 4: Dashboard
@@ -26,10 +26,10 @@
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 3 |
-| Plans attempted | 3 |
-| Requirements delivered | 0/32 |
-| Phases completed | 0/6 |
+| Plans completed | 4 |
+| Plans attempted | 4 |
+| Requirements delivered | 5/32 |
+| Phases completed | 1/6 |
 
 ## Accumulated Context
 
@@ -41,6 +41,9 @@
 - 2026-03-08: RateLimiter uses time.monotonic() for reliable delay measurement
 - 2026-03-08: Broad exception catch on nbainjuries import (JVMNotFoundException not ImportError)
 - 2026-03-08: SQLite FK constraint requires flush() between parent/child inserts in test fixtures
+- 2026-03-08: Game IDs tracked per-game in SyncLog for fine-grained checkpoint/resume (entity_type=historical_game_detail)
+- 2026-03-08: Daily sync filters games by date string comparison against last sync timestamp
+- 2026-03-08: CLI uses argparse with sync subcommand (no external dependency)
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -63,13 +66,13 @@
 
 ### Last Session
 - **Date**: 2026-03-08
-- **What happened**: Completed 01-02-PLAN.md (resumed) -- fixed FK constraint bug in test_game_sync, 92 tests passing
-- **Where stopped**: Completed 01-02-PLAN.md
+- **What happened**: Completed 01-04-PLAN.md -- historical loader, daily sync orchestrator, CLI entry points. Phase 1 complete (4/4 plans). 16 new tests, 108+ total.
+- **Where stopped**: Completed 01-04-PLAN.md (Phase 1 complete)
 
 ### Next Session
-- **Start with**: Execute 01-04-PLAN.md (historical loader + daily sync orchestrator + CLI)
-- **Context needed**: All adapters and sync functions from 01-01 through 01-03
+- **Start with**: Phase 2 - Feature Engineering planning
+- **Context needed**: All data models and sync functions from Phase 1
 
 ---
 *State initialized: 2026-03-07*
-*Last updated: 2026-03-08T04:23Z*
+*Last updated: 2026-03-08T05:00Z*

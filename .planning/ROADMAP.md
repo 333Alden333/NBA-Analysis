@@ -7,7 +7,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Data Foundation** - Local database with daily NBA data sync pipeline
+- [x] **Phase 1: Data Foundation** - Local database with daily NBA data sync pipeline
 - [ ] **Phase 2: Feature Engineering** - ML-ready features with temporal anti-leakage discipline
 - [ ] **Phase 3: Prediction Models** - Game, totals, and player prop predictions with tracking
 - [ ] **Phase 4: Dashboard** - Streamlit web interface surfacing predictions and stats
@@ -32,7 +32,7 @@ Plans:
 - [x] 01-01-PLAN.md — Project setup, DB schema (10 models), adapter interfaces, rate limiter, Alembic
 - [x] 01-02-PLAN.md — nba_api adapter + player/team/game sync functions
 - [x] 01-03-PLAN.md — Injury adapter (nbainjuries) + injury sync
-- [ ] 01-04-PLAN.md — Historical loader (3 seasons, checkpoint/resume) + daily sync orchestrator + CLI
+- [x] 01-04-PLAN.md — Historical loader (3 seasons, checkpoint/resume) + daily sync orchestrator + CLI
 
 ### Phase 2: Feature Engineering
 **Goal**: Raw stats are transformed into ML-ready feature rows that respect temporal boundaries
@@ -96,7 +96,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 3/4 | In progress | - |
+| 1. Data Foundation | 4/4 | Complete | 2026-03-08 |
 | 2. Feature Engineering | 0/? | Not started | - |
 | 3. Prediction Models | 0/? | Not started | - |
 | 4. Dashboard | 0/? | Not started | - |
