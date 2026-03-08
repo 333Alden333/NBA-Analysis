@@ -12,7 +12,7 @@
 **Phase**: 1 - Data Foundation
 **Plan**: 4 of 4
 **Status**: In progress
-**Progress**: #####░░░░░ 2/4 plans complete
+**Progress**: #######░░░ 3/4 plans complete
 
 ### Phase Checklist
 - [ ] Phase 1: Data Foundation
@@ -26,8 +26,8 @@
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 2 |
-| Plans attempted | 2 |
+| Plans completed | 3 |
+| Plans attempted | 3 |
 | Requirements delivered | 0/32 |
 | Phases completed | 0/6 |
 
@@ -40,6 +40,7 @@
 - 2026-03-08: Python 3.10 compatibility (system Python) instead of 3.11+
 - 2026-03-08: RateLimiter uses time.monotonic() for reliable delay measurement
 - 2026-03-08: Broad exception catch on nbainjuries import (JVMNotFoundException not ImportError)
+- 2026-03-08: SQLite FK constraint requires flush() between parent/child inserts in test fixtures
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -62,8 +63,8 @@
 
 ### Last Session
 - **Date**: 2026-03-08
-- **What happened**: Completed 01-03-PLAN.md -- NbaInjuriesAdapter, sync_injuries, 11 tests, 51 total passing
-- **Where stopped**: Completed 01-03-PLAN.md
+- **What happened**: Completed 01-02-PLAN.md (resumed) -- fixed FK constraint bug in test_game_sync, 92 tests passing
+- **Where stopped**: Completed 01-02-PLAN.md
 
 ### Next Session
 - **Start with**: Execute 01-04-PLAN.md (historical loader + daily sync orchestrator + CLI)
