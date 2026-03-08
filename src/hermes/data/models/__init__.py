@@ -11,6 +11,10 @@ from .player_tracking import PlayerTracking
 from .injury import Injury
 from .schedule import Schedule
 from .sync_log import SyncLog
+from .player_rolling_stats import PlayerRollingStats
+from .player_advanced_stats import PlayerAdvancedStats
+from .matchup_stats import MatchupStats
+from .team_features import TeamFeatures
 
 __all__ = [
     "Base",
@@ -26,4 +30,8 @@ __all__ = [
     "Injury",
     "Schedule",
     "SyncLog",
+    "PlayerRollingStats",
+    "PlayerAdvancedStats",
+    "MatchupStats",
+    "TeamFeatures",
 ]
