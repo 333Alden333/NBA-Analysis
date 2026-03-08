@@ -23,9 +23,9 @@ progress:
 ## Current Position
 
 **Phase**: 2 - Feature Engineering
-**Plan**: 2 of 4
-**Status**: Plan 02-01 complete, ready for 02-02
-**Progress**: ############ 5/8 plans complete
+**Plan**: 3 of 4
+**Status**: Plan 02-02 complete, ready for 02-03
+**Progress**: ############## 6/8 plans complete
 
 ### Phase Checklist
 - [x] Phase 1: Data Foundation
@@ -39,8 +39,8 @@ progress:
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 5 |
-| Plans attempted | 5 |
+| Plans completed | 6 |
+| Plans attempted | 6 |
 | Requirements delivered | 5/32 |
 | Phases completed | 1/6 |
 
@@ -59,6 +59,9 @@ progress:
 - 2026-03-08: CLI uses argparse with sync subcommand (no external dependency)
 - 2026-03-08: Explicit column definitions (not dynamic) for all 36 rolling stat columns -- clarity over DRY
 - 2026-03-08: Factory fixtures as standalone functions (not class-based) for composability
+- 2026-03-08: Per-game percentage averaging (mean of FG% per game, not aggregate FGM/FGA) per NBA analytics convention
+- 2026-03-08: Shift-by-1 rolling implementation for temporal discipline
+- 2026-03-08: Pure formula functions separated from DB logic for TS%, USG%, PER testability
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -81,13 +84,13 @@ progress:
 
 ### Last Session
 - **Date**: 2026-03-08
-- **What happened**: Completed 02-01-PLAN.md -- 4 feature table models, Alembic migration, 26 test stubs, factory fixtures. 108 tests passing, 26 skipped.
-- **Where stopped**: Completed 02-01-PLAN.md
+- **What happened**: Completed 02-02-PLAN.md -- rolling averages (12 stats x 3 windows) and advanced stats (TS%, USG%, PER). 11 new tests, 124 total passing.
+- **Where stopped**: Completed 02-02-PLAN.md
 
 ### Next Session
-- **Start with**: 02-02-PLAN.md (rolling averages + advanced stats computation)
-- **Context needed**: Feature models from 02-01, test fixtures in tests/data/conftest.py
+- **Start with**: 02-03-PLAN.md (matchup features + team features)
+- **Context needed**: Rolling/advanced feature modules from 02-02, models from 02-01
 
 ---
 *State initialized: 2026-03-07*
-*Last updated: 2026-03-08T16:22Z*
+*Last updated: 2026-03-08T16:28Z*

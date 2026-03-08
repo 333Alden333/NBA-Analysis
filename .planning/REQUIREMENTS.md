@@ -19,8 +19,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Feature Engineering
 
-- [ ] **FEAT-01**: System computes rolling averages (5, 10, 20 game windows) for key player stats
-- [ ] **FEAT-02**: System computes advanced stats (PER, true shooting %, usage rate)
+- [x] **FEAT-01**: System computes rolling averages (5, 10, 20 game windows) for key player stats
+- [x] **FEAT-02**: System computes advanced stats (PER, true shooting %, usage rate)
 - [ ] **FEAT-03**: System computes matchup-specific features (Player X vs Team Y defense history)
 - [ ] **FEAT-04**: System computes team-level features (pace, offensive/defensive rating, rest days)
 - [ ] **FEAT-05**: All features enforce temporal discipline — no future data leakage
@@ -102,8 +102,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Complete |
 | DATA-07 | Phase 1 | Complete |
-| FEAT-01 | Phase 2 | Pending |
-| FEAT-02 | Phase 2 | Pending |
+| FEAT-01 | Phase 2 | Complete |
+| FEAT-02 | Phase 2 | Complete |
 | FEAT-03 | Phase 2 | Pending |
 | FEAT-04 | Phase 2 | Pending |
 | FEAT-05 | Phase 2 | Pending |

@@ -48,7 +48,7 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Feature table models (4 tables), Alembic migration, test fixtures and stubs
-- [ ] 02-02-PLAN.md — Rolling averages (FEAT-01) + advanced stats (FEAT-02) with tests
+- [x] 02-02-PLAN.md — Rolling averages (FEAT-01) + advanced stats (FEAT-02) with tests
 - [ ] 02-03-PLAN.md — Matchup features (FEAT-03) + team features (FEAT-04) with tests
 - [ ] 02-04-PLAN.md — Feature engine orchestrator, CLI integration, temporal leakage tests (FEAT-05), get_features() API
 
@@ -103,7 +103,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 4/4 | Complete | 2026-03-08 |
-| 2. Feature Engineering | 1/4 | In progress | - |
+| 2. Feature Engineering | 2/4 | In progress | - |
 | 3. Prediction Models | 0/? | Not started | - |
 | 4. Dashboard | 0/? | Not started | - |
 | 5. Hermes Agent | 0/? | Not started | - |
