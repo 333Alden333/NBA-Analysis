@@ -52,8 +52,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Dashboard
 
 - [x] **DASH-01**: Today's games slate shows upcoming games with predictions and matchup info
-- [ ] **DASH-02**: Player pages show stats, trends, and recent performance with charts
-- [ ] **DASH-03**: Team pages show standings, stats, strength of schedule
+- [x] **DASH-02**: Player pages show stats, trends, and recent performance with charts
+- [x] **DASH-03**: Team pages show standings, stats, strength of schedule
 - [ ] **DASH-04**: Prediction tracker displays historical predictions vs actual outcomes
 - [ ] **DASH-05**: Interactive charts for stats trends, shot charts, and model performance
 
@@ -123,8 +123,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AGENT-03 | Phase 5 | Pending |
 | AGENT-04 | Phase 5 | Pending |
 | DASH-01 | Phase 4 | Complete |
-| DASH-02 | Phase 4 | Pending |
-| DASH-03 | Phase 4 | Pending |
+| DASH-02 | Phase 4 | Complete |
+| DASH-03 | Phase 4 | Complete |
 | DASH-04 | Phase 4 | Pending |
 | DASH-05 | Phase 4 | Pending |
 

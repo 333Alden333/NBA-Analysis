@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-09T00:39:00Z"
+last_updated: "2026-03-09T01:13:00Z"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 15
 ---
 
 # Project State: HermesAnalysis
@@ -23,15 +23,15 @@ progress:
 ## Current Position
 
 **Phase**: 4 - Dashboard
-**Plan**: 1 of 3 (04-01 complete)
-**Status**: Phase 4 in progress
-**Progress**: ################### 13/15 plans complete
+**Plan**: 3 of 3 (04-03 complete)
+**Status**: Phase 4 complete
+**Progress**: ##################### 15/15 plans complete
 
 ### Phase Checklist
 - [x] Phase 1: Data Foundation
 - [ ] Phase 2: Feature Engineering
 - [x] Phase 3: Prediction Models
-- [ ] Phase 4: Dashboard
+- [x] Phase 4: Dashboard
 - [ ] Phase 5: Hermes Agent
 - [ ] Phase 6: Computer Vision
 
@@ -39,10 +39,10 @@ progress:
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 13 |
-| Plans attempted | 13 |
-| Requirements delivered | 16/32 |
-| Phases completed | 3/6 |
+| Plans completed | 15 |
+| Plans attempted | 15 |
+| Requirements delivered | 20/32 |
+| Phases completed | 4/6 |
 
 ## Accumulated Context
 
@@ -82,6 +82,11 @@ progress:
 - 2026-03-09: Raw SQL with text() for dashboard queries -- avoids ORM object serialization issues with Streamlit caching
 - 2026-03-09: st.fragment(run_every=300) for auto-refresh instead of full page rerun
 - 2026-03-09: Page file paths relative to project root (where streamlit run is invoked)
+- 2026-03-09: Button-based team navigation (st.button) instead of st.page_link for standings drill-down
+- 2026-03-09: SOS computed from opponent current-season win percentages in standings data
+- 2026-03-09: Horizontal legend placement for chart readability
+- 2026-03-09: matplotlib patches for NBA court drawing (better than plotly shapes for complex geometry)
+- 2026-03-09: Exception guard on shot_charts table queries (table may not exist in all environments)
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -104,13 +109,13 @@ progress:
 
 ### Last Session
 - **Date**: 2026-03-09
-- **What happened**: Completed 04-01-PLAN.md -- Dashboard foundation: Streamlit app shell, 14-function cached data access layer, Today's Slate page with game cards showing predictions. 196 tests still passing.
-- **Where stopped**: Completed 04-01-PLAN.md
+- **What happened**: Completed 04-03-PLAN.md -- Prediction tracker page with type/date filtering and HIT/MISS/PENDING table. Model performance page with calibration curve, hit rate bars, NBA shot chart. Phase 4 (Dashboard) fully complete. 196 tests passing.
+- **Where stopped**: Completed 04-03-PLAN.md (Phase 4 complete)
 
 ### Next Session
-- **Start with**: Phase 4 Plan 02 -- Player and Team browse pages
-- **Context needed**: Dashboard data_access.py functions, game_card component pattern
+- **Start with**: Phase 5 -- Hermes Agent (natural language queries, CLI TUI, learning loop)
+- **Context needed**: Dashboard data access layer, prediction/metrics APIs, full model pipeline
 
 ---
 *State initialized: 2026-03-07*
-*Last updated: 2026-03-09T00:39Z*
+*Last updated: 2026-03-09T01:12Z*
