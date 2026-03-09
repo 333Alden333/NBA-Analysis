@@ -85,6 +85,13 @@ def build_parser() -> argparse.ArgumentParser:
     # Dashboard subcommand
     sub.add_parser("dashboard", help="Launch the Streamlit dashboard")
 
+    # Chat subcommand (Hermes Agent TUI)
+    chat_parser = sub.add_parser("chat", help="Interactive Hermes agent chat")
+    chat_parser.add_argument(
+        "--model", type=str, default=None,
+        help="Ollama model to use (default: from config or llama3.1:8b)",
+    )
+
     return parser
 
 
@@ -182,7 +189,7 @@ def main(argv: list[str] | None = None):
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if args.command not in ("sync", "features", "predict", "metrics", "dashboard"):
+    if args.command not in ("sync", "features", "predict", "metrics", "dashboard", "chat"):
         parser.print_help()
         sys.exit(1)
 
@@ -190,6 +197,15 @@ def main(argv: list[str] | None = None):
         import subprocess
         app_path = "src/hermes/dashboard/app.py"
         subprocess.run(["streamlit", "run", app_path])
+        return
+
+    if args.command == "chat":
+        from hermes.agent.tui import run_chat
+        session = _create_session()
+        try:
+            run_chat(session, model_override=args.model)
+        finally:
+            session.close()
         return
 
     session = _create_session()
