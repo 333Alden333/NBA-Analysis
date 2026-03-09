@@ -394,3 +394,27 @@ def get_metrics_summary() -> dict:
         return compute_metrics(session)
     finally:
         session.close()
+
+
+@st.cache_data(ttl=3600)
+def get_player_shots(player_id: int) -> list:
+    """Get shot chart data for a player.
+
+    Returns list of dicts with loc_x, loc_y, shot_made, shot_type,
+    shot_distance for court visualization.
+    """
+    session = _get_session()
+    try:
+        query = text("""
+            SELECT loc_x, loc_y, shot_made, shot_type, shot_distance,
+                   action_type, shot_zone_basic, game_id
+            FROM shot_charts
+            WHERE player_id = :player_id
+              AND loc_x IS NOT NULL
+              AND loc_y IS NOT NULL
+            ORDER BY game_id DESC
+        """)
+        rows = session.execute(query, {"player_id": player_id}).mappings().all()
+        return [dict(r) for r in rows]
+    finally:
+        session.close()
