@@ -99,7 +99,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Data queries (Streamlit-free), 8 agent tools, agent factory with Ollama LLM
+- [x] 05-01-PLAN.md — Data queries (Streamlit-free), 8 agent tools, agent factory with Ollama LLM
 - [ ] 05-02-PLAN.md — CLI TUI with prompt_toolkit REPL, Rich output, `hermes chat` subcommand
 
 ### Phase 6: Computer Vision
@@ -121,7 +121,7 @@ Plans:
 | 2. Feature Engineering | 3/4 | In progress | - |
 | 3. Prediction Models | 4/4 | Complete | 2026-03-08 |
 | 4. Dashboard | 3/3 | Complete | 2026-03-09 |
-| 5. Hermes Agent | 0/2 | Not started | - |
+| 5. Hermes Agent | 1/2 | In progress | - |
 | 6. Computer Vision | 0/? | Not started | - |
 
 ## Dependency Graph

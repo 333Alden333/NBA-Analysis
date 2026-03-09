@@ -44,9 +44,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Hermes Agent
 
-- [ ] **AGENT-01**: Hermes Agent configured with tools for all data and prediction functions
-- [ ] **AGENT-02**: User can ask natural language questions and get data-backed analysis
-- [ ] **AGENT-03**: Agent remembers past predictions and learns from outcomes over time
+- [x] **AGENT-01**: Hermes Agent configured with tools for all data and prediction functions
+- [x] **AGENT-02**: User can ask natural language questions and get data-backed analysis
+- [x] **AGENT-03**: Agent remembers past predictions and learns from outcomes over time
 - [ ] **AGENT-04**: CLI TUI available for deep interactive queries via Hermes terminal
 
 ### Dashboard
@@ -118,9 +118,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CV-02 | Phase 6 | Pending |
 | CV-03 | Phase 6 | Pending |
 | CV-04 | Phase 6 | Pending |
-| AGENT-01 | Phase 5 | Pending |
-| AGENT-02 | Phase 5 | Pending |
-| AGENT-03 | Phase 5 | Pending |
+| AGENT-01 | Phase 5 | Complete |
+| AGENT-02 | Phase 5 | Complete |
+| AGENT-03 | Phase 5 | Complete |
 | AGENT-04 | Phase 5 | Pending |
 | DASH-01 | Phase 4 | Complete |
 | DASH-02 | Phase 4 | Complete |

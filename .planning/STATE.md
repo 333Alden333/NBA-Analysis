@@ -3,29 +3,29 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-09T01:13:00Z"
+last_updated: "2026-03-09T04:32:37Z"
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 16
+  completed_plans: 16
 ---
 
 # Project State: HermesAnalysis
 
 ## Project Reference
 - **Core value**: Accurate, current predictions backed by real data
-- **Current focus**: Phase 4 - Dashboard
+- **Current focus**: Phase 5 - Hermes Agent
 - **Project file**: `.planning/PROJECT.md`
 - **Roadmap file**: `.planning/ROADMAP.md`
 - **Requirements file**: `.planning/REQUIREMENTS.md`
 
 ## Current Position
 
-**Phase**: 4 - Dashboard
-**Plan**: 3 of 3 (04-03 complete)
-**Status**: Phase 4 complete
-**Progress**: ##################### 15/15 plans complete
+**Phase**: 5 - Hermes Agent
+**Plan**: 1 of 3 (05-01 complete)
+**Status**: In progress
+**Progress**: ###################### 16/16 plans complete
 
 ### Phase Checklist
 - [x] Phase 1: Data Foundation
@@ -39,9 +39,9 @@ progress:
 
 | Metric | Value |
 |--------|-------|
-| Plans completed | 15 |
-| Plans attempted | 15 |
-| Requirements delivered | 20/32 |
+| Plans completed | 16 |
+| Plans attempted | 16 |
+| Requirements delivered | 23/32 |
 | Phases completed | 4/6 |
 
 ## Accumulated Context
@@ -87,6 +87,9 @@ progress:
 - 2026-03-09: Horizontal legend placement for chart readability
 - 2026-03-09: matplotlib patches for NBA court drawing (better than plotly shapes for complex geometry)
 - 2026-03-09: Exception guard on shot_charts table queries (table may not exist in all environments)
+- 2026-03-09: smolagents ToolCallingAgent uses `instructions` param (not `system_prompt`)
+- 2026-03-09: difflib fuzzy matching: 0.4 cutoff for players, 0.5 for teams (tighter to reduce false matches)
+- 2026-03-09: LiteLLM wraps Ollama with `ollama_chat/` prefix and `api_key="ollama"`
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -109,13 +112,13 @@ progress:
 
 ### Last Session
 - **Date**: 2026-03-09
-- **What happened**: Completed 04-03-PLAN.md -- Prediction tracker page with type/date filtering and HIT/MISS/PENDING table. Model performance page with calibration curve, hit rate bars, NBA shot chart. Phase 4 (Dashboard) fully complete. 196 tests passing.
-- **Where stopped**: Completed 04-03-PLAN.md (Phase 4 complete)
+- **What happened**: Completed 05-01-PLAN.md -- Hermes Agent core: 8 smolagents Tool subclasses, agent factory with Ollama LLM, Streamlit-free data queries, text formatters. 22 agent tests passing (218 total).
+- **Where stopped**: Completed 05-01-PLAN.md
 
 ### Next Session
-- **Start with**: Phase 5 -- Hermes Agent (natural language queries, CLI TUI, learning loop)
-- **Context needed**: Dashboard data access layer, prediction/metrics APIs, full model pipeline
+- **Start with**: Phase 5 Plan 2 -- TUI (textual terminal interface for the agent)
+- **Context needed**: Agent tools, agent factory, Ollama LLM backend
 
 ---
 *State initialized: 2026-03-07*
-*Last updated: 2026-03-09T01:13Z*
+*Last updated: 2026-03-09T04:32Z*
