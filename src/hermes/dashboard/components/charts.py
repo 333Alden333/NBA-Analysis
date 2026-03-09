@@ -193,3 +193,138 @@ def team_record_chart(games: list) -> go.Figure:
     )
 
     return fig
+
+
+def calibration_chart(calibration_data: list) -> go.Figure:
+    """Calibration plot: predicted probability vs actual win rate.
+
+    Args:
+        calibration_data: List of dicts with bin_lower, bin_upper,
+            predicted_avg, actual_rate, count from compute_calibration().
+
+    Returns:
+        Plotly Figure with calibration curve and perfect-calibration diagonal.
+    """
+    fig = go.Figure()
+
+    if not calibration_data:
+        fig.add_annotation(
+            text="No calibration data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16, color="gray"),
+        )
+        fig.update_layout(
+            title="Model Calibration -- Game Winner",
+            xaxis_title="Predicted Probability",
+            yaxis_title="Actual Win Rate",
+        )
+        return fig
+
+    predicted = [d["predicted_avg"] for d in calibration_data]
+    actual = [d["actual_rate"] for d in calibration_data]
+    counts = [d["count"] for d in calibration_data]
+
+    # Marker size proportional to bin count, clamped to reasonable range
+    max_count = max(counts) if counts else 1
+    sizes = [max(8, min(40, 8 + 32 * (c / max_count))) for c in counts]
+
+    # Perfect calibration diagonal
+    fig.add_trace(go.Scatter(
+        x=[0, 1], y=[0, 1],
+        mode="lines",
+        line=dict(dash="dash", color="gray", width=1),
+        name="Perfect Calibration",
+        showlegend=True,
+    ))
+
+    # Actual calibration points
+    hover_text = [
+        f"Predicted: {p:.3f}<br>Actual: {a:.3f}<br>Count: {c}"
+        for p, a, c in zip(predicted, actual, counts)
+    ]
+    fig.add_trace(go.Scatter(
+        x=predicted,
+        y=actual,
+        mode="markers+lines",
+        marker=dict(size=sizes, color="#636EFA"),
+        line=dict(color="#636EFA", width=2),
+        text=hover_text,
+        hoverinfo="text",
+        name="Model",
+    ))
+
+    fig.update_layout(
+        title="Model Calibration -- Game Winner",
+        xaxis_title="Predicted Probability",
+        yaxis_title="Actual Win Rate",
+        xaxis=dict(range=[0, 1]),
+        yaxis=dict(range=[0, 1]),
+        template="plotly_white",
+        height=450,
+    )
+
+    return fig
+
+
+def metrics_summary_chart(by_type: dict) -> go.Figure:
+    """Grouped bar chart of hit rate by prediction type.
+
+    Args:
+        by_type: Dict mapping type_name -> {hit_rate, total_predictions, ...}
+
+    Returns:
+        Plotly Figure with hit rate bars per prediction type.
+    """
+    fig = go.Figure()
+
+    if not by_type:
+        fig.add_annotation(
+            text="No metrics data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16, color="gray"),
+        )
+        fig.update_layout(title="Hit Rate by Prediction Type")
+        return fig
+
+    type_names = []
+    hit_rates = []
+    resolved_counts = []
+
+    for type_name, data in by_type.items():
+        type_names.append(type_name.replace("_", " ").title())
+        hit_rates.append((data.get("hit_rate", 0) or 0) * 100)
+        resolved_counts.append(data.get("total_resolved", 0) or 0)
+
+    hover_text = [
+        f"{name}<br>Hit Rate: {hr:.1f}%<br>Resolved: {rc}"
+        for name, hr, rc in zip(type_names, hit_rates, resolved_counts)
+    ]
+
+    colors = [
+        "#636EFA", "#EF553B", "#00CC96", "#AB63FA",
+        "#FFA15A", "#19D3F3", "#FF6692", "#B6E880",
+    ]
+
+    fig.add_trace(go.Bar(
+        x=type_names,
+        y=hit_rates,
+        text=[f"{hr:.1f}%" for hr in hit_rates],
+        textposition="outside",
+        hovertext=hover_text,
+        hoverinfo="text",
+        marker_color=colors[:len(type_names)],
+    ))
+
+    fig.update_layout(
+        title="Hit Rate by Prediction Type",
+        xaxis_title="Prediction Type",
+        yaxis_title="Hit Rate (%)",
+        yaxis=dict(range=[0, 105]),
+        template="plotly_white",
+        height=400,
+        showlegend=False,
+    )
+
+    return fig
