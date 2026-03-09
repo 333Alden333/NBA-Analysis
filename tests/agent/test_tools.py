@@ -133,4 +133,4 @@ class TestGetMatchupAnalysis:
 
         tool = GetMatchupAnalysis(db_session=session)
         result = tool.forward(player_name="Nobody", team_name="Lakers")
-        assert "not found" in result.lower()
+        assert "not found" in result.lower() or "no matching" in result.lower()

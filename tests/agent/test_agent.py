@@ -15,7 +15,7 @@ class TestAgentFactory:
 
             agent = create_agent(session)
 
-            # Should have all 8 tools
+            # Should have all 8 custom tools (plus built-in like final_answer)
             assert len(agent.tools) >= 8
 
     def test_create_agent_tool_names(self, session):
@@ -26,7 +26,8 @@ class TestAgentFactory:
 
             agent = create_agent(session)
 
-            tool_names = [t.name for t in agent.tools]
+            # agent.tools is a dict keyed by tool name
+            tool_names = list(agent.tools.keys())
             expected = [
                 "search_player", "get_player_stats", "get_player_predictions",
                 "get_team_info", "get_today_games", "get_prediction_accuracy",

@@ -294,7 +294,7 @@ def search_teams(session: Session, query_str: str) -> Optional[dict]:
 
     # Fuzzy match on full_name
     names = [t["full_name"] for t in all_teams]
-    close = difflib.get_close_matches(query_str, names, n=1, cutoff=0.4)
+    close = difflib.get_close_matches(query_str, names, n=1, cutoff=0.5)
     if close:
         name_to_team = {t["full_name"]: t for t in all_teams}
         return name_to_team[close[0]]
