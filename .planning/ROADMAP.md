@@ -96,7 +96,11 @@ Plans:
   2. A user can type "How will Luka do tonight?" and receive a response grounded in actual model predictions and matchup data
   3. The agent can recall its past predictions and reference whether they hit or missed when asked
   4. The CLI TUI launches and supports multi-turn interactive queries with the agent
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Data queries (Streamlit-free), 8 agent tools, agent factory with Ollama LLM
+- [ ] 05-02-PLAN.md — CLI TUI with prompt_toolkit REPL, Rich output, `hermes chat` subcommand
 
 ### Phase 6: Computer Vision
 **Goal**: Game footage is processed to extract player movement features that enrich prediction models
@@ -117,7 +121,7 @@ Plans:
 | 2. Feature Engineering | 3/4 | In progress | - |
 | 3. Prediction Models | 4/4 | Complete | 2026-03-08 |
 | 4. Dashboard | 3/3 | Complete | 2026-03-09 |
-| 5. Hermes Agent | 0/? | Not started | - |
+| 5. Hermes Agent | 0/2 | Not started | - |
 | 6. Computer Vision | 0/? | Not started | - |
 
 ## Dependency Graph
