@@ -80,7 +80,12 @@ Plans:
   3. Clicking a team shows standings, team stats, and strength of schedule
   4. A prediction tracker page displays all past predictions alongside actual outcomes with filtering
   5. Interactive charts render for stats trends, shot charts, and model calibration plots
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Dashboard foundation: Streamlit app shell, data access layer, Today's Slate page
+- [ ] 04-02-PLAN.md — Player detail page with trend charts, Team page with standings and ratings
+- [ ] 04-03-PLAN.md — Prediction tracker with filtering, Model Performance with calibration and shot charts
 
 ### Phase 5: Hermes Agent
 **Goal**: Users can ask natural language questions and get data-backed analysis through a conversational interface
@@ -111,7 +116,7 @@ Plans:
 | 1. Data Foundation | 4/4 | Complete | 2026-03-08 |
 | 2. Feature Engineering | 3/4 | In progress | - |
 | 3. Prediction Models | 4/4 | Complete | 2026-03-08 |
-| 4. Dashboard | 0/? | Not started | - |
+| 4. Dashboard | 0/3 | Not started | - |
 | 5. Hermes Agent | 0/? | Not started | - |
 | 6. Computer Vision | 0/? | Not started | - |
 
