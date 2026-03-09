@@ -82,6 +82,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="End date filter (YYYY-MM-DD)",
     )
 
+    # Dashboard subcommand
+    sub.add_parser("dashboard", help="Launch the Streamlit dashboard")
+
     return parser
 
 
@@ -179,9 +182,15 @@ def main(argv: list[str] | None = None):
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if args.command not in ("sync", "features", "predict", "metrics"):
+    if args.command not in ("sync", "features", "predict", "metrics", "dashboard"):
         parser.print_help()
         sys.exit(1)
+
+    if args.command == "dashboard":
+        import subprocess
+        app_path = "src/hermes/dashboard/app.py"
+        subprocess.run(["streamlit", "run", app_path])
+        return
 
     session = _create_session()
 
