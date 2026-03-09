@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-08T21:32:00Z"
+last_updated: "2026-03-09T00:39:00Z"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 13
+  total_plans: 15
   completed_plans: 13
 ---
 
@@ -15,17 +15,17 @@ progress:
 
 ## Project Reference
 - **Core value**: Accurate, current predictions backed by real data
-- **Current focus**: Phase 3 - Prediction Models
+- **Current focus**: Phase 4 - Dashboard
 - **Project file**: `.planning/PROJECT.md`
 - **Roadmap file**: `.planning/ROADMAP.md`
 - **Requirements file**: `.planning/REQUIREMENTS.md`
 
 ## Current Position
 
-**Phase**: 3 - Prediction Models (COMPLETE)
-**Plan**: 4 of 4 (phase complete)
-**Status**: Phase 3 complete, ready for Phase 4
-**Progress**: ################## 13/13 plans complete
+**Phase**: 4 - Dashboard
+**Plan**: 1 of 3 (04-01 complete)
+**Status**: Phase 4 in progress
+**Progress**: ################### 13/15 plans complete
 
 ### Phase Checklist
 - [x] Phase 1: Data Foundation
@@ -41,7 +41,7 @@ progress:
 |--------|-------|
 | Plans completed | 13 |
 | Plans attempted | 13 |
-| Requirements delivered | 15/32 |
+| Requirements delivered | 16/32 |
 | Phases completed | 3/6 |
 
 ## Accumulated Context
@@ -79,6 +79,9 @@ progress:
 - 2026-03-08: Brier score ONLY for game_winner (binary); MAE/RMSE for regression types
 - 2026-03-08: Manual calibration binning for transparency (not sklearn.calibration)
 - 2026-03-08: fg3m stat maps to "player_3pm" prediction type for sports terminology consistency
+- 2026-03-09: Raw SQL with text() for dashboard queries -- avoids ORM object serialization issues with Streamlit caching
+- 2026-03-09: st.fragment(run_every=300) for auto-refresh instead of full page rerun
+- 2026-03-09: Page file paths relative to project root (where streamlit run is invoked)
 
 ### Known Issues
 - nba_api is unofficial and can be unstable (Cloudflare rate limiting, endpoint deprecation) -- build adapter pattern from day one
@@ -100,14 +103,14 @@ progress:
 ## Session Continuity
 
 ### Last Session
-- **Date**: 2026-03-08
-- **What happened**: Completed 03-04-PLAN.md -- PredictionEngine, training pipeline, outcome resolver, metrics module (Brier/MAE/RMSE/CI coverage/calibration), CLI predict/metrics subcommands. 19 new tests, 196 total passing.
-- **Where stopped**: Completed 03-04-PLAN.md (Phase 3 complete)
+- **Date**: 2026-03-09
+- **What happened**: Completed 04-01-PLAN.md -- Dashboard foundation: Streamlit app shell, 14-function cached data access layer, Today's Slate page with game cards showing predictions. 196 tests still passing.
+- **Where stopped**: Completed 04-01-PLAN.md
 
 ### Next Session
-- **Start with**: Phase 4 - Dashboard
-- **Context needed**: All Phase 3 models (GamePredictor, TotalsPredictor, PlayerPropsPredictor, PredictionEngine, metrics)
+- **Start with**: Phase 4 Plan 02 -- Player and Team browse pages
+- **Context needed**: Dashboard data_access.py functions, game_card component pattern
 
 ---
 *State initialized: 2026-03-07*
-*Last updated: 2026-03-08T21:32Z*
+*Last updated: 2026-03-09T00:39Z*

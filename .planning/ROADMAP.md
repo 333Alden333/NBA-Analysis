@@ -83,7 +83,7 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Dashboard foundation: Streamlit app shell, data access layer, Today's Slate page
+- [x] 04-01-PLAN.md — Dashboard foundation: Streamlit app shell, data access layer, Today's Slate page
 - [ ] 04-02-PLAN.md — Player detail page with trend charts, Team page with standings and ratings
 - [ ] 04-03-PLAN.md — Prediction tracker with filtering, Model Performance with calibration and shot charts
 
@@ -116,7 +116,7 @@ Plans:
 | 1. Data Foundation | 4/4 | Complete | 2026-03-08 |
 | 2. Feature Engineering | 3/4 | In progress | - |
 | 3. Prediction Models | 4/4 | Complete | 2026-03-08 |
-| 4. Dashboard | 0/3 | Not started | - |
+| 4. Dashboard | 1/3 | In progress | - |
 | 5. Hermes Agent | 0/? | Not started | - |
 | 6. Computer Vision | 0/? | Not started | - |
 
@@ -142,4 +142,4 @@ Note: Phase 6 (CV) depends on Phase 3 (not Phase 4/5) because CV features feed i
 
 ---
 *Roadmap created: 2026-03-07*
-*Last updated: 2026-03-08*
+*Last updated: 2026-03-09*
