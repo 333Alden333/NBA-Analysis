@@ -4,7 +4,7 @@ import datetime
 
 import pytest
 
-from hermes.data.features.team import (
+from sportsprediction.data.features.team import (
     compute_team_features,
     compute_team_features_for_games,
     estimate_possessions,
@@ -12,7 +12,7 @@ from hermes.data.features.team import (
     compute_pace,
     compute_rest_days,
 )
-from hermes.data.models import TeamFeatures
+from sportsprediction.data.models import TeamFeatures
 
 
 class TestPaceComputed:

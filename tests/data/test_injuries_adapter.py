@@ -5,8 +5,8 @@ from unittest.mock import patch, MagicMock
 import pandas as pd
 import pytest
 
-from hermes.data.adapters.base import InjuryDataAdapter
-from hermes.data.adapters.injuries_adapter import NbaInjuriesAdapter
+from sportsprediction.data.adapters.base import InjuryDataAdapter
+from sportsprediction.data.adapters.injuries_adapter import NbaInjuriesAdapter
 
 
 class TestNbaInjuriesAdapter:
@@ -14,7 +14,7 @@ class TestNbaInjuriesAdapter:
         adapter = NbaInjuriesAdapter()
         assert isinstance(adapter, InjuryDataAdapter)
 
-    @patch("hermes.data.adapters.injuries_adapter.injury")
+    @patch("sportsprediction.data.adapters.injuries_adapter.injury")
     def test_get_current_injuries_returns_dataframe(self, mock_injury_mod):
         mock_injury_mod.get_reportdata.return_value = pd.DataFrame(
             {
@@ -34,7 +34,7 @@ class TestNbaInjuriesAdapter:
         for col in ["Player Name", "Team", "Current Status", "Reason"]:
             assert col in df.columns
 
-    @patch("hermes.data.adapters.injuries_adapter.injury")
+    @patch("sportsprediction.data.adapters.injuries_adapter.injury")
     def test_handles_empty_report(self, mock_injury_mod):
         mock_injury_mod.get_reportdata.return_value = pd.DataFrame()
         adapter = NbaInjuriesAdapter()
@@ -42,7 +42,7 @@ class TestNbaInjuriesAdapter:
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 0
 
-    @patch("hermes.data.adapters.injuries_adapter.injury", None)
+    @patch("sportsprediction.data.adapters.injuries_adapter.injury", None)
     def test_handles_missing_java_gracefully(self):
         """When nbainjuries is not available, return empty DataFrame."""
         adapter = NbaInjuriesAdapter()

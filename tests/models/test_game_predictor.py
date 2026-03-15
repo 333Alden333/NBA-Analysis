@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes.models.game_predictor import GamePredictor
-from hermes.models.base_model import PredictionResult
+from sportsprediction.models.game_predictor import GamePredictor
+from sportsprediction.models.base_model import PredictionResult
 
 
 def _make_game_features(

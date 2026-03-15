@@ -4,12 +4,12 @@ from datetime import date, datetime
 
 import pytest
 
-from hermes.data.models.base import Base
-from hermes.data.models.game import Game
-from hermes.data.models.player import Player
-from hermes.data.models.team import Team
-from hermes.data.models.box_score import BoxScore
-from hermes.data.models.prediction import Prediction, PredictionOutcome
+from sportsprediction.data.models.base import Base
+from sportsprediction.data.models.game import Game
+from sportsprediction.data.models.player import Player
+from sportsprediction.data.models.team import Team
+from sportsprediction.data.models.box_score import BoxScore
+from sportsprediction.data.models.prediction import Prediction, PredictionOutcome
 
 
 # ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ def _seed_prediction(session, game_id, pred_type, predicted_value,
 
 def test_resolve_outcomes_creates_outcome_rows(session):
     """resolve_outcomes should create PredictionOutcome with actual values."""
-    from hermes.models.outcome_resolver import resolve_outcomes
+    from sportsprediction.models.outcome_resolver import resolve_outcomes
 
     game = _seed_final_game(session, home_score=110, away_score=105)
     _seed_prediction(session, game.game_id, "game_winner", 1.0, win_probability=0.65)
@@ -80,7 +80,7 @@ def test_resolve_outcomes_creates_outcome_rows(session):
 
 def test_game_winner_is_correct(session):
     """is_correct=1 if predicted winner matches actual winner."""
-    from hermes.models.outcome_resolver import resolve_outcomes
+    from sportsprediction.models.outcome_resolver import resolve_outcomes
 
     # Home wins 110-105, predicted home win (value=1)
     game = _seed_final_game(session, home_score=110, away_score=105)
@@ -96,7 +96,7 @@ def test_game_winner_is_correct(session):
 
 def test_game_winner_is_incorrect(session):
     """is_correct=0 if predicted winner does NOT match actual."""
-    from hermes.models.outcome_resolver import resolve_outcomes
+    from sportsprediction.models.outcome_resolver import resolve_outcomes
 
     # Away wins 100-110, but predicted home win (value=1)
     game = _seed_final_game(session, home_score=100, away_score=110)
@@ -115,7 +115,7 @@ def test_game_winner_is_incorrect(session):
 
 def test_player_prop_within_ci_is_correct(session):
     """is_correct=1 if actual stat is within confidence interval."""
-    from hermes.models.outcome_resolver import resolve_outcomes
+    from sportsprediction.models.outcome_resolver import resolve_outcomes
 
     game = _seed_final_game(session)
     player = Player(player_id=101, full_name="Test Player")
@@ -140,7 +140,7 @@ def test_player_prop_within_ci_is_correct(session):
 
 def test_player_prop_outside_ci_is_incorrect(session):
     """is_correct=0 if actual stat is outside confidence interval."""
-    from hermes.models.outcome_resolver import resolve_outcomes
+    from sportsprediction.models.outcome_resolver import resolve_outcomes
 
     game = _seed_final_game(session)
     player = Player(player_id=102, full_name="Another Player")
@@ -169,7 +169,7 @@ def test_player_prop_outside_ci_is_incorrect(session):
 
 def test_resolve_skips_already_resolved(session):
     """Already-resolved predictions should not be re-processed."""
-    from hermes.models.outcome_resolver import resolve_outcomes
+    from sportsprediction.models.outcome_resolver import resolve_outcomes
 
     game = _seed_final_game(session)
     pred = _seed_prediction(session, game.game_id, "game_winner", 1.0, win_probability=0.65)
@@ -185,7 +185,7 @@ def test_resolve_skips_already_resolved(session):
 
 def test_resolve_skips_non_final_games(session):
     """Predictions for games not yet Final should be skipped."""
-    from hermes.models.outcome_resolver import resolve_outcomes
+    from sportsprediction.models.outcome_resolver import resolve_outcomes
 
     _seed_teams(session)
     g = Game(
@@ -208,7 +208,7 @@ def test_resolve_skips_non_final_games(session):
 
 def test_resolve_skips_null_scores(session):
     """Games with status=Final but null scores should be skipped."""
-    from hermes.models.outcome_resolver import resolve_outcomes
+    from sportsprediction.models.outcome_resolver import resolve_outcomes
 
     _seed_teams(session)
     g = Game(

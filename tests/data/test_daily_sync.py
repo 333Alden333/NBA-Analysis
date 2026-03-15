@@ -9,9 +9,9 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from hermes.data.models.base import Base
-from hermes.data.models.sync_log import SyncLog
-from hermes.data.ingestion.daily_sync import run_daily_sync
+from sportsprediction.data.models.base import Base
+from sportsprediction.data.models.sync_log import SyncLog
+from sportsprediction.data.ingestion.daily_sync import run_daily_sync
 
 
 @pytest.fixture()
@@ -50,12 +50,12 @@ class TestDailySync:
 
     def test_syncs_all_entity_types(self, db_session, mock_nba_adapter, mock_injury_adapter):
         """Daily sync touches teams, standings, games, and injuries."""
-        with patch("hermes.data.ingestion.daily_sync.sync_teams") as m_teams, \
-             patch("hermes.data.ingestion.daily_sync.sync_standings") as m_stand, \
-             patch("hermes.data.ingestion.daily_sync.sync_game_box_scores") as m_box, \
-             patch("hermes.data.ingestion.daily_sync.sync_play_by_play") as m_pbp, \
-             patch("hermes.data.ingestion.daily_sync.sync_shot_charts") as m_shots, \
-             patch("hermes.data.ingestion.daily_sync.sync_injuries") as m_inj:
+        with patch("sportsprediction.data.ingestion.daily_sync.sync_teams") as m_teams, \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_standings") as m_stand, \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_game_box_scores") as m_box, \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_play_by_play") as m_pbp, \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_shot_charts") as m_shots, \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_injuries") as m_inj:
             m_teams.return_value = 30
             m_stand.return_value = 30
             m_box.return_value = 2
@@ -81,9 +81,9 @@ class TestDailySync:
         ))
         db_session.commit()
 
-        with patch("hermes.data.ingestion.daily_sync.sync_game_box_scores") as m_box, \
-             patch("hermes.data.ingestion.daily_sync.sync_play_by_play") as m_pbp, \
-             patch("hermes.data.ingestion.daily_sync.sync_shot_charts") as m_shots:
+        with patch("sportsprediction.data.ingestion.daily_sync.sync_game_box_scores") as m_box, \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_play_by_play") as m_pbp, \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_shot_charts") as m_shots:
             m_box.return_value = 1
             m_pbp.return_value = 1
             m_shots.return_value = 1
@@ -106,9 +106,9 @@ class TestDailySync:
 
     def test_partial_failure_doesnt_block_others(self, db_session, mock_nba_adapter, mock_injury_adapter):
         """If one entity type fails, others still sync."""
-        with patch("hermes.data.ingestion.daily_sync.sync_teams", side_effect=Exception("API down")), \
-             patch("hermes.data.ingestion.daily_sync.sync_standings") as m_stand, \
-             patch("hermes.data.ingestion.daily_sync.sync_injuries") as m_inj:
+        with patch("sportsprediction.data.ingestion.daily_sync.sync_teams", side_effect=Exception("API down")), \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_standings") as m_stand, \
+             patch("sportsprediction.data.ingestion.daily_sync.sync_injuries") as m_inj:
             m_stand.return_value = 30
             m_inj.return_value = None
 
@@ -121,7 +121,7 @@ class TestDailySync:
 
     def test_freshness_logged(self, db_session, mock_nba_adapter, mock_injury_adapter, caplog):
         """Freshness timestamps appear in logs."""
-        with caplog.at_level(logging.INFO, logger="hermes.data.ingestion.daily_sync"):
+        with caplog.at_level(logging.INFO, logger="sportsprediction.data.ingestion.daily_sync"):
             run_daily_sync(mock_nba_adapter, mock_injury_adapter, db_session, season="2024-25")
 
         assert any("Daily sync complete" in r.message for r in caplog.records)
@@ -130,7 +130,7 @@ class TestDailySync:
 class TestCLI:
     def test_cli_parses_historical(self):
         """CLI recognizes --historical flag."""
-        from hermes.cli import build_parser
+        from sportsprediction.cli import build_parser
         parser = build_parser()
         args = parser.parse_args(["sync", "--historical"])
         assert args.historical is True
@@ -138,7 +138,7 @@ class TestCLI:
 
     def test_cli_parses_daily(self):
         """CLI recognizes --daily flag."""
-        from hermes.cli import build_parser
+        from sportsprediction.cli import build_parser
         parser = build_parser()
         args = parser.parse_args(["sync", "--daily"])
         assert args.daily is True
@@ -146,7 +146,7 @@ class TestCLI:
 
     def test_cli_parses_status(self):
         """CLI recognizes --status flag."""
-        from hermes.cli import build_parser
+        from sportsprediction.cli import build_parser
         parser = build_parser()
         args = parser.parse_args(["sync", "--status"])
         assert args.status is True

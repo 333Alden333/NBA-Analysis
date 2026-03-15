@@ -10,8 +10,8 @@ class TestPredictionModel:
 
     def test_create_prediction_with_all_fields(self, session):
         """Test 1: Prediction model can be created with all required fields."""
-        from hermes.data.models.prediction import Prediction
-        from hermes.data.models import Game, Team, Player
+        from sportsprediction.data.models.prediction import Prediction
+        from sportsprediction.data.models import Game, Team, Player
 
         # Create prerequisite records
         team = Team(team_id=1, full_name="Test Team", abbreviation="TST")
@@ -49,8 +49,8 @@ class TestPredictionModel:
 
     def test_create_prediction_outcome(self, session):
         """Test 2: PredictionOutcome links to Prediction via FK."""
-        from hermes.data.models.prediction import Prediction, PredictionOutcome
-        from hermes.data.models import Game, Team
+        from sportsprediction.data.models.prediction import Prediction, PredictionOutcome
+        from sportsprediction.data.models import Game, Team
 
         team = Team(team_id=1, full_name="Test Team", abbreviation="TST")
         session.add(team)
@@ -86,8 +86,8 @@ class TestPredictionModel:
 
     def test_prediction_type_values(self, session):
         """Test 3: prediction_type covers all required types."""
-        from hermes.data.models.prediction import Prediction
-        from hermes.data.models import Game, Team, Player
+        from sportsprediction.data.models.prediction import Prediction
+        from sportsprediction.data.models import Game, Team, Player
 
         team = Team(team_id=1, full_name="Test Team", abbreviation="TST")
         session.add(team)
@@ -121,15 +121,15 @@ class TestPredictionModel:
 
         session.flush()
 
-        from hermes.data.models.prediction import Prediction as P
+        from sportsprediction.data.models.prediction import Prediction as P
         preds = session.query(P).all()
         stored_types = {p.prediction_type for p in preds}
         assert stored_types == set(valid_types)
 
     def test_unique_constraint_prevents_duplicates(self, session):
         """Test 4: Unique constraint on (game_id, prediction_type, player_id, model_version)."""
-        from hermes.data.models.prediction import Prediction
-        from hermes.data.models import Game, Team, Player
+        from sportsprediction.data.models.prediction import Prediction
+        from sportsprediction.data.models import Game, Team, Player
 
         team = Team(team_id=1, full_name="Test Team", abbreviation="TST")
         session.add(team)

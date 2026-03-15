@@ -4,8 +4,8 @@ import datetime
 
 import pytest
 
-from hermes.data.features.rolling import compute_rolling_stats
-from hermes.data.models import PlayerRollingStats
+from sportsprediction.data.features.rolling import compute_rolling_stats
+from sportsprediction.data.models import PlayerRollingStats
 
 
 def _create_games_with_points(session, make_team, make_player, make_game, make_box_score,

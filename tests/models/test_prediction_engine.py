@@ -8,13 +8,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes.data.models.base import Base
-from hermes.data.models.game import Game
-from hermes.data.models.player import Player
-from hermes.data.models.team import Team
-from hermes.data.models.box_score import BoxScore
-from hermes.data.models.prediction import Prediction, PredictionOutcome
-from hermes.models.base_model import PredictionResult
+from sportsprediction.data.models.base import Base
+from sportsprediction.data.models.game import Game
+from sportsprediction.data.models.player import Player
+from sportsprediction.data.models.team import Team
+from sportsprediction.data.models.box_score import BoxScore
+from sportsprediction.data.models.prediction import Prediction, PredictionOutcome
+from sportsprediction.models.base_model import PredictionResult
 
 
 # ---------------------------------------------------------------------------
@@ -85,7 +85,7 @@ def _mock_player_results():
 
 def _make_engine(session, mock_gp=None, mock_tp=None, mock_pp=None):
     """Create a PredictionEngine with mocked model loading."""
-    from hermes.models.prediction_engine import PredictionEngine
+    from sportsprediction.models.prediction_engine import PredictionEngine
 
     engine = PredictionEngine.__new__(PredictionEngine)
     engine._session = session
@@ -112,7 +112,7 @@ def test_predict_game_stores_three_predictions(session):
     mock_tp.predict.return_value = _mock_totals_result()
 
     # Patch build_game_features to return valid features
-    with patch("hermes.models.prediction_engine.GamePredictor") as MockGPClass:
+    with patch("sportsprediction.models.prediction_engine.GamePredictor") as MockGPClass:
         MockGPClass.build_game_features.return_value = {"home_pace": 100.0, "is_home": 1.0}
 
         engine = _make_engine(session, mock_gp=mock_gp, mock_tp=mock_tp)
@@ -154,7 +154,7 @@ def test_predict_player_props_stores_four_predictions(session):
     mock_pp = MagicMock()
     mock_pp.predict_all.return_value = _mock_player_results()
 
-    with patch("hermes.models.prediction_engine.get_features", return_value={"points_avg_5": 20.0}):
+    with patch("sportsprediction.models.prediction_engine.get_features", return_value={"points_avg_5": 20.0}):
         engine = _make_engine(session, mock_pp=mock_pp)
         preds = engine.predict_player_props(game, player.player_id)
 
@@ -178,7 +178,7 @@ def test_predict_player_props_no_features_returns_empty(session):
 
     mock_pp = MagicMock()
 
-    with patch("hermes.models.prediction_engine.get_features", return_value=None):
+    with patch("sportsprediction.models.prediction_engine.get_features", return_value=None):
         engine = _make_engine(session, mock_pp=mock_pp)
         preds = engine.predict_player_props(game, player.player_id)
 
@@ -192,13 +192,13 @@ def test_predict_player_props_no_features_returns_empty(session):
 
 def test_train_all_models(session):
     """train_all_models should train and save model instances."""
-    from hermes.models.training import train_all_models
+    from sportsprediction.models.training import train_all_models
 
-    with patch("hermes.models.training.build_game_training_data") as mock_game_data, \
-         patch("hermes.models.training.build_player_training_data") as mock_player_data, \
-         patch("hermes.models.training.GamePredictor") as MockGP, \
-         patch("hermes.models.training.TotalsPredictor") as MockTP, \
-         patch("hermes.models.training.PlayerPropsPredictor") as MockPP:
+    with patch("sportsprediction.models.training.build_game_training_data") as mock_game_data, \
+         patch("sportsprediction.models.training.build_player_training_data") as mock_player_data, \
+         patch("sportsprediction.models.training.GamePredictor") as MockGP, \
+         patch("sportsprediction.models.training.TotalsPredictor") as MockTP, \
+         patch("sportsprediction.models.training.PlayerPropsPredictor") as MockPP:
 
         mock_game_data.return_value = {
             "game_features": [{"home_pace": 100}] * 30,

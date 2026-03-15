@@ -4,10 +4,10 @@ from datetime import date, datetime
 
 import pytest
 
-from hermes.data.models.game import Game
-from hermes.data.models.player import Player
-from hermes.data.models.team import Team
-from hermes.data.models.prediction import Prediction, PredictionOutcome
+from sportsprediction.data.models.game import Game
+from sportsprediction.data.models.player import Player
+from sportsprediction.data.models.team import Team
+from sportsprediction.data.models.prediction import Prediction, PredictionOutcome
 
 
 # ---------------------------------------------------------------------------
@@ -68,7 +68,7 @@ def _add_resolved_prediction(session, game_id, pred_type, predicted_value,
 
 def test_compute_metrics_game_winner(session):
     """compute_metrics for game_winner returns hit_rate, brier_score, counts."""
-    from hermes.models.metrics import compute_metrics
+    from sportsprediction.models.metrics import compute_metrics
 
     game = _seed_game(session)
 
@@ -101,7 +101,7 @@ def test_compute_metrics_game_winner(session):
 
 def test_brier_score_perfect(session):
     """Brier score should be 0.0 for perfectly calibrated predictions."""
-    from hermes.models.metrics import compute_metrics
+    from sportsprediction.models.metrics import compute_metrics
 
     game = _seed_game(session)
 
@@ -126,7 +126,7 @@ def test_brier_score_perfect(session):
 
 def test_brier_score_always_wrong(session):
     """Brier score should approach 1.0 for always-wrong predictions."""
-    from hermes.models.metrics import compute_metrics
+    from sportsprediction.models.metrics import compute_metrics
 
     game = _seed_game(session)
 
@@ -151,7 +151,7 @@ def test_brier_score_always_wrong(session):
 
 def test_compute_metrics_regression_mae(session):
     """Regression types should return MAE instead of Brier score."""
-    from hermes.models.metrics import compute_metrics
+    from sportsprediction.models.metrics import compute_metrics
 
     game = _seed_game(session)
 
@@ -179,7 +179,7 @@ def test_compute_metrics_regression_mae(session):
 
 def test_compute_calibration(session):
     """compute_calibration should return bucket data for calibration plot."""
-    from hermes.models.metrics import compute_calibration
+    from sportsprediction.models.metrics import compute_calibration
 
     game = _seed_game(session)
 
@@ -211,7 +211,7 @@ def test_compute_calibration(session):
 
 def test_compute_metrics_no_data(session):
     """compute_metrics with no resolved predictions returns zeroed metrics."""
-    from hermes.models.metrics import compute_metrics
+    from sportsprediction.models.metrics import compute_metrics
 
     metrics = compute_metrics(session, prediction_type="game_winner")
     assert metrics["total_predictions"] == 0
@@ -225,7 +225,7 @@ def test_compute_metrics_no_data(session):
 
 def test_compute_metrics_date_filter(session):
     """Metrics should respect start_date/end_date filtering."""
-    from hermes.models.metrics import compute_metrics
+    from sportsprediction.models.metrics import compute_metrics
 
     game = _seed_game(session)
 

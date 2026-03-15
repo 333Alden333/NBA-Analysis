@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes.data.adapters.base import NBADataAdapter
-from hermes.data.adapters.nba_api_adapter import NbaApiAdapter
-from hermes.data.ingestion.rate_limiter import RateLimiter
+from sportsprediction.data.adapters.base import NBADataAdapter
+from sportsprediction.data.adapters.nba_api_adapter import NbaApiAdapter
+from sportsprediction.data.ingestion.rate_limiter import RateLimiter
 from tests.data.fixtures.sample_responses import (
     player_info_df,
     player_game_log_df,
@@ -38,7 +38,7 @@ class TestAdapterIsNBADataAdapter:
 
 
 class TestGetPlayerInfo:
-    @patch("hermes.data.adapters.nba_api_adapter.commonplayerinfo.CommonPlayerInfo")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.commonplayerinfo.CommonPlayerInfo")
     def test_returns_dict_with_expected_keys(self, mock_cls, adapter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [player_info_df()]
@@ -52,7 +52,7 @@ class TestGetPlayerInfo:
         assert "TEAM_ID" in result
         assert result["PERSON_ID"] == 201939
 
-    @patch("hermes.data.adapters.nba_api_adapter.commonplayerinfo.CommonPlayerInfo")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.commonplayerinfo.CommonPlayerInfo")
     def test_uses_rate_limiter(self, mock_cls, adapter, rate_limiter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [player_info_df()]
@@ -63,7 +63,7 @@ class TestGetPlayerInfo:
 
 
 class TestGetPlayerGameLog:
-    @patch("hermes.data.adapters.nba_api_adapter.playergamelog.PlayerGameLog")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.playergamelog.PlayerGameLog")
     def test_returns_dataframe_with_expected_columns(self, mock_cls, adapter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [player_game_log_df()]
@@ -77,7 +77,7 @@ class TestGetPlayerGameLog:
         assert "AST" in result.columns
         assert len(result) == 2
 
-    @patch("hermes.data.adapters.nba_api_adapter.playergamelog.PlayerGameLog")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.playergamelog.PlayerGameLog")
     def test_uses_rate_limiter(self, mock_cls, adapter, rate_limiter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [player_game_log_df()]
@@ -88,7 +88,7 @@ class TestGetPlayerGameLog:
 
 
 class TestGetGameBoxScore:
-    @patch("hermes.data.adapters.nba_api_adapter.boxscoretraditionalv3.BoxScoreTraditionalV3")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.boxscoretraditionalv3.BoxScoreTraditionalV3")
     def test_returns_dict_with_player_and_team_stats(self, mock_cls, adapter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [
@@ -104,7 +104,7 @@ class TestGetGameBoxScore:
         assert len(result["PlayerStats"]) == 1
         assert len(result["TeamStats"]) == 1
 
-    @patch("hermes.data.adapters.nba_api_adapter.boxscoretraditionalv3.BoxScoreTraditionalV3")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.boxscoretraditionalv3.BoxScoreTraditionalV3")
     def test_uses_rate_limiter(self, mock_cls, adapter, rate_limiter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [
@@ -118,7 +118,7 @@ class TestGetGameBoxScore:
 
 
 class TestGetPlayByPlay:
-    @patch("hermes.data.adapters.nba_api_adapter.playbyplayv3.PlayByPlayV3")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.playbyplayv3.PlayByPlayV3")
     def test_returns_dataframe_with_expected_columns(self, mock_cls, adapter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [play_by_play_df()]
@@ -132,7 +132,7 @@ class TestGetPlayByPlay:
         assert "description" in result.columns
         assert len(result) == 2
 
-    @patch("hermes.data.adapters.nba_api_adapter.playbyplayv3.PlayByPlayV3")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.playbyplayv3.PlayByPlayV3")
     def test_uses_rate_limiter(self, mock_cls, adapter, rate_limiter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [play_by_play_df()]
@@ -143,7 +143,7 @@ class TestGetPlayByPlay:
 
 
 class TestGetShotChart:
-    @patch("hermes.data.adapters.nba_api_adapter.shotchartdetail.ShotChartDetail")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.shotchartdetail.ShotChartDetail")
     def test_returns_dataframe_with_expected_columns(self, mock_cls, adapter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [shot_chart_df()]
@@ -157,7 +157,7 @@ class TestGetShotChart:
         assert "SHOT_MADE_FLAG" in result.columns
         assert len(result) == 2
 
-    @patch("hermes.data.adapters.nba_api_adapter.shotchartdetail.ShotChartDetail")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.shotchartdetail.ShotChartDetail")
     def test_uses_rate_limiter(self, mock_cls, adapter, rate_limiter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [shot_chart_df()]
@@ -168,7 +168,7 @@ class TestGetShotChart:
 
 
 class TestGetLeagueStandings:
-    @patch("hermes.data.adapters.nba_api_adapter.leaguestandingsv3.LeagueStandingsV3")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.leaguestandingsv3.LeagueStandingsV3")
     def test_returns_dataframe_with_expected_columns(self, mock_cls, adapter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [league_standings_df()]
@@ -181,7 +181,7 @@ class TestGetLeagueStandings:
         assert "LOSSES" in result.columns
         assert len(result) == 2
 
-    @patch("hermes.data.adapters.nba_api_adapter.leaguestandingsv3.LeagueStandingsV3")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.leaguestandingsv3.LeagueStandingsV3")
     def test_uses_rate_limiter(self, mock_cls, adapter, rate_limiter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [league_standings_df()]
@@ -192,7 +192,7 @@ class TestGetLeagueStandings:
 
 
 class TestGetSeasonGames:
-    @patch("hermes.data.adapters.nba_api_adapter.leaguegamefinder.LeagueGameFinder")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.leaguegamefinder.LeagueGameFinder")
     def test_returns_dataframe_with_game_id(self, mock_cls, adapter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [season_games_df()]
@@ -203,7 +203,7 @@ class TestGetSeasonGames:
         assert "GAME_ID" in result.columns
         assert len(result) == 2
 
-    @patch("hermes.data.adapters.nba_api_adapter.leaguegamefinder.LeagueGameFinder")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.leaguegamefinder.LeagueGameFinder")
     def test_uses_rate_limiter(self, mock_cls, adapter, rate_limiter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [season_games_df()]
@@ -214,7 +214,7 @@ class TestGetSeasonGames:
 
 
 class TestGetSchedule:
-    @patch("hermes.data.adapters.nba_api_adapter.scheduleleaguev2.ScheduleLeagueV2")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.scheduleleaguev2.ScheduleLeagueV2")
     def test_returns_dataframe_with_schedule_data(self, mock_cls, adapter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [schedule_df()]
@@ -225,7 +225,7 @@ class TestGetSchedule:
         assert "GAME_ID" in result.columns
         assert len(result) == 2
 
-    @patch("hermes.data.adapters.nba_api_adapter.scheduleleaguev2.ScheduleLeagueV2")
+    @patch("sportsprediction.data.adapters.nba_api_adapter.scheduleleaguev2.ScheduleLeagueV2")
     def test_uses_rate_limiter(self, mock_cls, adapter, rate_limiter):
         mock_inst = MagicMock()
         mock_inst.get_data_frames.return_value = [schedule_df()]

@@ -6,8 +6,8 @@ import pytest
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 
-from hermes.data.models.base import Base
-from hermes.data.models import (
+from sportsprediction.data.models.base import Base
+from sportsprediction.data.models import (
     Player, Team, Game, BoxScore, Prediction, PredictionOutcome,
 )
 
@@ -127,7 +127,7 @@ def session(engine):
 
     # Matchup stats (create table manually since MatchupStats may need it)
     try:
-        from hermes.data.models.matchup_stats import MatchupStats
+        from sportsprediction.data.models.matchup_stats import MatchupStats
         ms = MatchupStats(
             player_id=101, game_id=games[0].game_id,
             game_date=dates[0], opponent_team_id=2,

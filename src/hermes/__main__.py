@@ -1,6 +1,0 @@
-"""Enable `python -m hermes` execution."""
-
-from hermes.cli import main
-
-if __name__ == "__main__":
-    main()

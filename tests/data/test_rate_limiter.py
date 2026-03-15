@@ -3,7 +3,7 @@
 import time
 import pytest
 
-from hermes.data.ingestion.rate_limiter import RateLimiter
+from sportsprediction.data.ingestion.rate_limiter import RateLimiter
 
 
 class TestRateLimiterWait:

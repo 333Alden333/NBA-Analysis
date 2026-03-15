@@ -5,21 +5,21 @@ import pytest
 
 class TestSearchPlayer:
     def test_finds_by_partial_name(self, session):
-        from hermes.agent.tools import SearchPlayer
+        from sportsprediction.agent.tools import SearchPlayer
 
         tool = SearchPlayer(db_session=session)
         result = tool.forward(player_name="LeBron")
         assert "LeBron James" in result
 
     def test_finds_by_last_name(self, session):
-        from hermes.agent.tools import SearchPlayer
+        from sportsprediction.agent.tools import SearchPlayer
 
         tool = SearchPlayer(db_session=session)
         result = tool.forward(player_name="Tatum")
         assert "Jayson Tatum" in result
 
     def test_not_found_graceful(self, session):
-        from hermes.agent.tools import SearchPlayer
+        from sportsprediction.agent.tools import SearchPlayer
 
         tool = SearchPlayer(db_session=session)
         result = tool.forward(player_name="Zxqwerty Nonexistent")
@@ -28,7 +28,7 @@ class TestSearchPlayer:
 
 class TestGetPlayerStats:
     def test_returns_formatted_games(self, session):
-        from hermes.agent.tools import GetPlayerStats
+        from sportsprediction.agent.tools import GetPlayerStats
 
         tool = GetPlayerStats(db_session=session)
         result = tool.forward(player_name="LeBron James")
@@ -36,7 +36,7 @@ class TestGetPlayerStats:
         assert "REB" in result
 
     def test_not_found(self, session):
-        from hermes.agent.tools import GetPlayerStats
+        from sportsprediction.agent.tools import GetPlayerStats
 
         tool = GetPlayerStats(db_session=session)
         result = tool.forward(player_name="Nonexistent Player")
@@ -45,7 +45,7 @@ class TestGetPlayerStats:
 
 class TestGetPlayerPredictions:
     def test_returns_predictions(self, session):
-        from hermes.agent.tools import GetPlayerPredictions
+        from sportsprediction.agent.tools import GetPlayerPredictions
 
         tool = GetPlayerPredictions(db_session=session)
         result = tool.forward(player_name="LeBron James")
@@ -55,21 +55,21 @@ class TestGetPlayerPredictions:
 
 class TestGetTeamInfo:
     def test_finds_by_name(self, session):
-        from hermes.agent.tools import GetTeamInfo
+        from sportsprediction.agent.tools import GetTeamInfo
 
         tool = GetTeamInfo(db_session=session)
         result = tool.forward(team_name="Lakers")
         assert "Los Angeles Lakers" in result or "LAL" in result
 
     def test_finds_by_abbreviation(self, session):
-        from hermes.agent.tools import GetTeamInfo
+        from sportsprediction.agent.tools import GetTeamInfo
 
         tool = GetTeamInfo(db_session=session)
         result = tool.forward(team_name="BOS")
         assert "Boston Celtics" in result or "BOS" in result
 
     def test_not_found(self, session):
-        from hermes.agent.tools import GetTeamInfo
+        from sportsprediction.agent.tools import GetTeamInfo
 
         tool = GetTeamInfo(db_session=session)
         result = tool.forward(team_name="Nonexistent FC")
@@ -78,7 +78,7 @@ class TestGetTeamInfo:
 
 class TestGetTodayGames:
     def test_returns_games_for_date(self, session):
-        from hermes.agent.tools import GetTodayGames
+        from sportsprediction.agent.tools import GetTodayGames
 
         tool = GetTodayGames(db_session=session)
         # Use a date with games in our fixture
@@ -86,7 +86,7 @@ class TestGetTodayGames:
         assert "LAL" in result or "BOS" in result or "no games" in result.lower()
 
     def test_no_games(self, session):
-        from hermes.agent.tools import GetTodayGames
+        from sportsprediction.agent.tools import GetTodayGames
 
         tool = GetTodayGames(db_session=session)
         result = tool.forward(date_str="2099-01-01")
@@ -95,7 +95,7 @@ class TestGetTodayGames:
 
 class TestGetPredictionAccuracy:
     def test_returns_metrics(self, session):
-        from hermes.agent.tools import GetPredictionAccuracy
+        from sportsprediction.agent.tools import GetPredictionAccuracy
 
         tool = GetPredictionAccuracy(db_session=session)
         result = tool.forward(prediction_type=None)
@@ -103,7 +103,7 @@ class TestGetPredictionAccuracy:
         assert "hit rate" in result.lower() or "type" in result.lower()
 
     def test_specific_type(self, session):
-        from hermes.agent.tools import GetPredictionAccuracy
+        from sportsprediction.agent.tools import GetPredictionAccuracy
 
         tool = GetPredictionAccuracy(db_session=session)
         result = tool.forward(prediction_type="game_winner")
@@ -112,7 +112,7 @@ class TestGetPredictionAccuracy:
 
 class TestGetPredictionHistory:
     def test_returns_history(self, session):
-        from hermes.agent.tools import GetPredictionHistory
+        from sportsprediction.agent.tools import GetPredictionHistory
 
         tool = GetPredictionHistory(db_session=session)
         result = tool.forward(prediction_type=None)
@@ -121,7 +121,7 @@ class TestGetPredictionHistory:
 
 class TestGetMatchupAnalysis:
     def test_returns_matchup(self, session):
-        from hermes.agent.tools import GetMatchupAnalysis
+        from sportsprediction.agent.tools import GetMatchupAnalysis
 
         tool = GetMatchupAnalysis(db_session=session)
         result = tool.forward(player_name="LeBron James", team_name="Celtics")
@@ -129,7 +129,7 @@ class TestGetMatchupAnalysis:
         assert "LeBron" in result or "no matchup" in result.lower() or "not found" in result.lower()
 
     def test_player_not_found(self, session):
-        from hermes.agent.tools import GetMatchupAnalysis
+        from sportsprediction.agent.tools import GetMatchupAnalysis
 
         tool = GetMatchupAnalysis(db_session=session)
         result = tool.forward(player_name="Nobody", team_name="Lakers")

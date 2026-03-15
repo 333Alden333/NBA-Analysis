@@ -6,9 +6,9 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from hermes.data.adapters.base import InjuryDataAdapter
-from hermes.data.models.injury import Injury
-from hermes.data.models.sync_log import SyncLog
+from sportsprediction.data.adapters.base import InjuryDataAdapter
+from sportsprediction.data.models.injury import Injury
+from sportsprediction.data.models.sync_log import SyncLog
 
 
 class MockInjuryDataAdapter(InjuryDataAdapter):
@@ -38,7 +38,7 @@ class MockInjuryDataAdapter(InjuryDataAdapter):
 
 class TestSyncInjuries:
     def test_accepts_abstract_adapter(self, session):
-        from hermes.data.ingestion.injury_sync import sync_injuries
+        from sportsprediction.data.ingestion.injury_sync import sync_injuries
 
         import inspect
 
@@ -48,7 +48,7 @@ class TestSyncInjuries:
         sync_injuries(adapter, session)
 
     def test_creates_injury_records(self, session):
-        from hermes.data.ingestion.injury_sync import sync_injuries
+        from sportsprediction.data.ingestion.injury_sync import sync_injuries
 
         adapter = MockInjuryDataAdapter()
         sync_injuries(adapter, session)
@@ -58,7 +58,7 @@ class TestSyncInjuries:
         assert injuries[1].player_name == "Stephen Curry"
 
     def test_stores_raw_json(self, session):
-        from hermes.data.ingestion.injury_sync import sync_injuries
+        from sportsprediction.data.ingestion.injury_sync import sync_injuries
 
         adapter = MockInjuryDataAdapter()
         sync_injuries(adapter, session)
@@ -68,7 +68,7 @@ class TestSyncInjuries:
         assert "Player Name" in raw
 
     def test_writes_sync_log(self, session):
-        from hermes.data.ingestion.injury_sync import sync_injuries
+        from sportsprediction.data.ingestion.injury_sync import sync_injuries
 
         adapter = MockInjuryDataAdapter()
         sync_injuries(adapter, session)
@@ -78,7 +78,7 @@ class TestSyncInjuries:
         assert log.status == "success"
 
     def test_clears_old_records_on_resync(self, session):
-        from hermes.data.ingestion.injury_sync import sync_injuries
+        from sportsprediction.data.ingestion.injury_sync import sync_injuries
 
         adapter = MockInjuryDataAdapter()
         sync_injuries(adapter, session)
@@ -102,7 +102,7 @@ class TestSyncInjuries:
         assert session.query(Injury).first().player_name == "Anthony Davis"
 
     def test_handles_empty_report(self, session):
-        from hermes.data.ingestion.injury_sync import sync_injuries
+        from sportsprediction.data.ingestion.injury_sync import sync_injuries
 
         adapter = MockInjuryDataAdapter(data=pd.DataFrame())
         sync_injuries(adapter, session)
@@ -113,7 +113,7 @@ class TestSyncInjuries:
         assert log.status == "success"
 
     def test_handles_adapter_error(self, session):
-        from hermes.data.ingestion.injury_sync import sync_injuries
+        from sportsprediction.data.ingestion.injury_sync import sync_injuries
 
         adapter = MockInjuryDataAdapter(error=True)
         sync_injuries(adapter, session)

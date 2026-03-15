@@ -2,8 +2,8 @@
 
 import pytest
 
-from hermes.models.totals_predictor import TotalsPredictor
-from hermes.models.base_model import PredictionResult
+from sportsprediction.models.totals_predictor import TotalsPredictor
+from sportsprediction.models.base_model import PredictionResult
 
 
 def _make_game_features(

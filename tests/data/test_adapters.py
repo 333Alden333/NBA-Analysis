@@ -5,7 +5,7 @@ from typing import Any
 
 import pandas as pd
 
-from hermes.data.adapters.base import NBADataAdapter, InjuryDataAdapter
+from sportsprediction.data.adapters.base import NBADataAdapter, InjuryDataAdapter
 
 
 class TestNBADataAdapterAbstract:

@@ -4,8 +4,8 @@ import datetime
 
 import pytest
 
-from hermes.data.features.matchup import compute_matchup_stats, compute_matchup_stats_for_games
-from hermes.data.models import MatchupStats
+from sportsprediction.data.features.matchup import compute_matchup_stats, compute_matchup_stats_for_games
+from sportsprediction.data.models import MatchupStats
 
 
 class TestMatchupAvgComputed:

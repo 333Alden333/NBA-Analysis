@@ -4,7 +4,7 @@ import datetime
 
 import pytest
 
-from hermes.data.models import Player, Team, Game, BoxScore
+from sportsprediction.data.models import Player, Team, Game, BoxScore
 
 
 @pytest.fixture

@@ -9,16 +9,16 @@ import datetime
 
 import pytest
 
-from hermes.data.models import (
+from sportsprediction.data.models import (
     Player, Team, Game, BoxScore,
     PlayerRollingStats, PlayerAdvancedStats, MatchupStats, TeamFeatures,
 )
-from hermes.data.features.rolling import compute_rolling_stats
-from hermes.data.features.advanced import compute_advanced_stats
-from hermes.data.features.matchup import compute_matchup_stats
-from hermes.data.features.team import compute_team_features
-from hermes.data.features.engine import compute_all_features_for_games
-from hermes.data.features.temporal import validate_no_leakage
+from sportsprediction.data.features.rolling import compute_rolling_stats
+from sportsprediction.data.features.advanced import compute_advanced_stats
+from sportsprediction.data.features.matchup import compute_matchup_stats
+from sportsprediction.data.features.team import compute_team_features
+from sportsprediction.data.features.engine import compute_all_features_for_games
+from sportsprediction.data.features.temporal import validate_no_leakage
 
 
 def _setup_teams_and_players(session, num_teams=2, players_per_team=2):

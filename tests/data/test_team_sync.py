@@ -7,11 +7,11 @@ import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
-from hermes.data.adapters.base import NBADataAdapter
-from hermes.data.models.base import Base
-from hermes.data.models.team import Team
-from hermes.data.models.sync_log import SyncLog
-from hermes.data.ingestion.team_sync import sync_teams, sync_standings
+from sportsprediction.data.adapters.base import NBADataAdapter
+from sportsprediction.data.models.base import Base
+from sportsprediction.data.models.team import Team
+from sportsprediction.data.models.sync_log import SyncLog
+from sportsprediction.data.ingestion.team_sync import sync_teams, sync_standings
 from tests.data.fixtures.sample_responses import league_standings_df
 
 

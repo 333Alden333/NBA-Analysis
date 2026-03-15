@@ -4,8 +4,8 @@ import math
 import pytest
 import random
 
-from hermes.models.base_model import PredictionResult
-from hermes.models.player_predictor import PlayerPropPredictor, PlayerPropsPredictor
+from sportsprediction.models.base_model import PredictionResult
+from sportsprediction.models.player_predictor import PlayerPropPredictor, PlayerPropsPredictor
 
 
 def _make_feature_dict(

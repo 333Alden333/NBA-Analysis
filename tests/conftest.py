@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 @pytest.fixture
 def engine():
     """Create an in-memory SQLite engine with foreign keys enabled."""
-    from hermes.data.models.base import Base
+    from sportsprediction.data.models.base import Base
 
     eng = create_engine("sqlite:///:memory:", echo=False)
 

@@ -3,7 +3,7 @@
 import pytest
 from statistics import mean
 
-from hermes.models.base_model import BasePredictor, PredictionResult
+from sportsprediction.models.base_model import BasePredictor, PredictionResult
 
 
 class DummyPredictor(BasePredictor):

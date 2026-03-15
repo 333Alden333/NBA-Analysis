@@ -7,16 +7,16 @@ import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
-from hermes.data.adapters.base import NBADataAdapter
-from hermes.data.models.base import Base
-from hermes.data.models.team import Team
-from hermes.data.models.player import Player
-from hermes.data.models.game import Game
-from hermes.data.models.box_score import BoxScore
-from hermes.data.models.play_by_play import PlayByPlay
-from hermes.data.models.shot_chart import ShotChart
-from hermes.data.models.sync_log import SyncLog
-from hermes.data.ingestion.game_sync import (
+from sportsprediction.data.adapters.base import NBADataAdapter
+from sportsprediction.data.models.base import Base
+from sportsprediction.data.models.team import Team
+from sportsprediction.data.models.player import Player
+from sportsprediction.data.models.game import Game
+from sportsprediction.data.models.box_score import BoxScore
+from sportsprediction.data.models.play_by_play import PlayByPlay
+from sportsprediction.data.models.shot_chart import ShotChart
+from sportsprediction.data.models.sync_log import SyncLog
+from sportsprediction.data.ingestion.game_sync import (
     sync_game_box_scores,
     sync_play_by_play,
     sync_shot_charts,

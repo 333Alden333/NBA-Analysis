@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
 
-from hermes.data.models import (
+from sportsprediction.data.models import (
     Base,
     Player,
     Team,

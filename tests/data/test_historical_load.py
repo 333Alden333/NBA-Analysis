@@ -9,9 +9,9 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session as SASession, sessionmaker
 
-from hermes.data.models.base import Base
-from hermes.data.models.sync_log import SyncLog
-from hermes.data.ingestion.historical import run_historical_load
+from sportsprediction.data.models.base import Base
+from sportsprediction.data.models.sync_log import SyncLog
+from sportsprediction.data.ingestion.historical import run_historical_load
 
 
 @pytest.fixture()
@@ -53,7 +53,7 @@ class TestHistoricalLoad:
 
     def test_deduplicates_game_ids(self, db_session, mock_adapter):
         """Game IDs from LeagueGameFinder appear twice; loader deduplicates."""
-        from hermes.data.ingestion.game_sync import sync_game_box_scores
+        from sportsprediction.data.ingestion.game_sync import sync_game_box_scores
         run_historical_load(mock_adapter, db_session, seasons=["2022-23"])
 
         # Should sync 2 unique games, not 4 rows
@@ -99,7 +99,7 @@ class TestHistoricalLoad:
 
     def test_individual_game_failure_doesnt_stop_load(self, db_session, mock_adapter):
         """If one game fails, others still process."""
-        from hermes.data.ingestion import game_sync
+        from sportsprediction.data.ingestion import game_sync
 
         original_sync = game_sync.sync_game_box_scores
         call_count = {"value": 0}
@@ -129,9 +129,9 @@ class TestHistoricalLoad:
             "GAME_DATE": ["2022-10-18"] * len(game_ids),
         })
 
-        with patch("hermes.data.ingestion.historical.sync_game_box_scores") as mock_box, \
-             patch("hermes.data.ingestion.historical.sync_play_by_play") as mock_pbp, \
-             patch("hermes.data.ingestion.historical.sync_shot_charts") as mock_shots:
+        with patch("sportsprediction.data.ingestion.historical.sync_game_box_scores") as mock_box, \
+             patch("sportsprediction.data.ingestion.historical.sync_play_by_play") as mock_pbp, \
+             patch("sportsprediction.data.ingestion.historical.sync_shot_charts") as mock_shots:
             mock_box.return_value = 1
             mock_pbp.return_value = 1
             mock_shots.return_value = 1
@@ -160,10 +160,10 @@ class TestHistoricalLoad:
         """Teams must be synced before games (FK dependency)."""
         call_order = []
 
-        with patch("hermes.data.ingestion.historical.sync_teams") as mock_teams, \
-             patch("hermes.data.ingestion.historical.sync_game_box_scores") as mock_box, \
-             patch("hermes.data.ingestion.historical.sync_play_by_play") as mock_pbp, \
-             patch("hermes.data.ingestion.historical.sync_shot_charts") as mock_shots:
+        with patch("sportsprediction.data.ingestion.historical.sync_teams") as mock_teams, \
+             patch("sportsprediction.data.ingestion.historical.sync_game_box_scores") as mock_box, \
+             patch("sportsprediction.data.ingestion.historical.sync_play_by_play") as mock_pbp, \
+             patch("sportsprediction.data.ingestion.historical.sync_shot_charts") as mock_shots:
             mock_teams.side_effect = lambda *a, **kw: call_order.append("teams") or 1
             mock_box.side_effect = lambda *a, **kw: call_order.append("box_scores") or 1
             mock_pbp.return_value = 1

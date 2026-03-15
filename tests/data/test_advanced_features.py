@@ -4,13 +4,13 @@ import datetime
 
 import pytest
 
-from hermes.data.features.advanced import (
+from sportsprediction.data.features.advanced import (
     compute_advanced_stats,
     compute_true_shooting_pct,
     compute_usage_rate,
     compute_simplified_per,
 )
-from hermes.data.models import PlayerAdvancedStats
+from sportsprediction.data.models import PlayerAdvancedStats
 
 
 class TestTrueShootingPct:
