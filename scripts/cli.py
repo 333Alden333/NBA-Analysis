@@ -83,7 +83,7 @@ class Colors:
 # Tools & Skills displayed in banner
 TOOLS = [
     ("ELO Rankings", "Team strength ratings & rankings"),
-    ("ML Predictions", "GBM model · 73.5% accuracy"),
+    ("ML Predictions", "GBM model · ELO-based"),
     ("Pattern Engine", "Matchup classification system"),
     ("Player Stats", "Per-game & season averages"),
     ("Momentum", "Hot/cold streak detection"),
@@ -519,10 +519,7 @@ def build_info_line() -> Text:
     """Build the model/path/session info line below the box."""
     info = Text()
     info.append("  Model ", style=Style(color=Colors.DIM))
-    info.append("GBM v2 · scikit-learn", style=Style(color=Colors.AMBER))
-    info.append("  │  ", style=Style(color=Colors.DIM))
-    info.append("Accuracy ", style=Style(color=Colors.DIM))
-    info.append("73.5%", style=Style(color=Colors.CYAN, bold=True))
+    info.append("GBM v2 · ELO-based", style=Style(color=Colors.AMBER))
     info.append("  │  ", style=Style(color=Colors.DIM))
     info.append("DB ", style=Style(color=Colors.DIM))
     info.append("SQLite", style=Style(color=Colors.AMBER))
