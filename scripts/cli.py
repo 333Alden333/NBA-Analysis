@@ -11,49 +11,31 @@ os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # ============== HELP ==============
 
 HELP = """
-=== NBA PREDICTION TOOL ===
+=== NBA ANALYST v1.0.0 ===
 
-Commands:
-  /elo           Show ELO rankings (best teams)
-                 Optional: /elo --png (save chart)
-  /games         Show recent game scores  
-  /predict       Predict a matchup
-                 Usage: /predict <team1> <team2>
-                 Example: /predict Celtics Lakers
-  /player       Show player career stats
-                 Usage: /player <name> [--png]
-                 Example: /player Curry
-  /team         Show team stats by season
-                 Usage: /team <name> [--png]
-                 Example: /team Lakers
-  /compare       Compare two players
-                 Usage: /compare <player1> vs <player2> [--png]
-                 Example: /compare Curry vs LeBron
-  /trend         Show player PPG trend
-                 Usage: /trend <player> [--png]
-                 Example: /trend Luka
-  /top           Show league leaders
-                 Usage: /top <category> [--png]
-                 Categories: pts, reb, ast, stl, blk, 3pm
-                 Example: /top pts
-  /heatmap       Show team stats correlation heatmap
-                 Usage: /heatmap [--png]
-  /shot          Show player shot chart
-                 Usage: /shot <player> [--png]
-                 Example: /shot Curry
-  /pattern        Analyze player matchup patterns
-                 Usage: /pattern <player> vs <team>
-                 Example: /pattern Curry vs Lakers
-  /momentum       Show who's hot/cold
-                 Example: /momentum
-  /matchup       Classify player vs team matchup
-                 Usage: /matchup <player> vs <team>
-                 Example: /matchup LeBron vs Celtics
-  /odds          Show Polymarket NBA championship odds
-  /teams         List all available teams
-  /update        Update ELO ratings
-  /help          Show this message
-  /quit          Exit
+Tools (prefix with /):
+  elo         ELO rankings with chart (--png to save)
+  games       Recent game scores
+  predict     Matchup prediction: /predict Celtics Lakers
+  odds        Polymarket championship odds
+  teams       List all teams
+  player      Player stats: /player Curry [--png]
+  team        Team stats: /team Lakers [--png]
+  compare     Compare players: /compare Curry vs LeBron [--png]
+  trend       PPG trend: /trend Luka [--png]
+  top         League leaders: /top pts|reb|ast|stl|blk|3pm [--png]
+  heatmap     Stats correlation [--png]
+  shot        Shot chart: /shot Curry [--png]
+  pattern     Player vs team: /pattern Curry vs Lakers
+  matchup     Matchup classification: /matchup LeBron vs Celtics
+  edge        Betting edges (model vs market)
+  momentum    Who's hot/cold
+  update      Refresh ELO ratings
+
+Utilities:
+  help        Show this message
+  clear       Clear screen and redashboard
+  quit        Exit
 
 Examples:
   /elo
@@ -75,7 +57,91 @@ Examples:
 
 # ============== FUNCTIONS ==============
 
+def compute_elo_from_db():
+    """Compute live ELO ratings from box_scores in database."""
+    import sqlite3
+    from collections import defaultdict
+    
+    conn = sqlite3.connect("data/hermes.db")
+    cur = conn.cursor()
+    
+    # Get team names
+    cur.execute("SELECT team_id, full_name FROM teams")
+    team_names = {row[0]: row[1] for row in cur.fetchall()}
+    
+    # Get game scores for current season (00225 = 2025-26)
+    cur.execute("""
+        SELECT game_id, team_id, SUM(points) as total_points
+        FROM box_scores
+        WHERE game_id LIKE '00225%'
+        GROUP BY game_id, team_id
+    """)
+    game_scores = defaultdict(dict)
+    for gid, tid, pts in cur.fetchall():
+        game_scores[gid][tid] = pts
+    
+    conn.close()
+    
+    # Initialize ELO, wins, losses at 1500
+    elo = {tid: 1500 for tid in team_names.keys()}
+    wins = {tid: 0 for tid in team_names.keys()}
+    losses = {tid: 0 for tid in team_names.keys()}
+    K_FACTOR = 32
+    
+    # Process each game in order
+    for gid in sorted(game_scores.keys()):
+        teams = game_scores[gid]
+        if len(teams) != 2:
+            continue
+        
+        tids = list(teams.keys())
+        t1, t2 = tids[0], tids[1]
+        s1, s2 = teams[t1], teams[t2]
+        
+        e1 = 1 / (1 + 10 ** ((elo.get(t2, 1500) - elo.get(t1, 1500)) / 400))
+        e2 = 1 / (1 + 10 ** ((elo.get(t1, 1500) - elo.get(t2, 1500)) / 400))
+        
+        if s1 > s2:
+            S1, S2 = 1, 0
+            wins[t1] += 1
+            losses[t2] += 1
+        elif s2 > s1:
+            S1, S2 = 0, 1
+            wins[t2] += 1
+            losses[t1] += 1
+        else:
+            S1, S2 = 0.5, 0.5
+            wins[t1] += 0.5
+            wins[t2] += 0.5
+        
+        elo[t1] = elo.get(t1, 1500) + K_FACTOR * (S1 - e1)
+        elo[t2] = elo.get(t2, 1500) + K_FACTOR * (S2 - e2)
+    
+    # Format for show_elo compatibility
+    result = {}
+    for tid in team_names.keys():
+        w = int(wins[tid])
+        l = int(losses[tid])
+        gp = w + l
+        wpct = (w / gp * 100) if gp > 0 else 0
+        result[str(tid)] = {
+            "elo": elo[tid],
+            "wins": w,
+            "losses": l,
+            "win_pct": f"{wpct:.1f}"
+        }
+    
+    return result
+
 def load_elo():
+    """Load ELO ratings - computes fresh from DB if available."""
+    # Try to compute live ELO from box_scores first
+    try:
+        return compute_elo_from_db()
+    except Exception as e:
+        pass
+    
+    # Fallback to JSON file
     try:
         with open("data/elo_ratings.json") as f:
             return json.load(f)
@@ -203,8 +269,8 @@ def show_predict(teams, elo, arg):
     
     t1_id, t1_name = matches[0]
     t2_id, t2_name = matches[1]
-    t1_elo = elo.get(str(t1_id), elo.get(t1_id, {}))
-    t2_elo = elo.get(str(t2_id), elo.get(t2_id, {}))
+    t1_elo = elo.get(str(t1_id), elo.get(str(t1_id), {"elo": 1500, "wins": 0, "losses": 0, "win_pct": "0.0"}))
+    t2_elo = elo.get(str(t2_id), elo.get(str(t2_id), {"elo": 1500, "wins": 0, "losses": 0, "win_pct": "0.0"}))
     
     if not t1_elo or not t2_elo:
         print("Error: No ELO data")
@@ -215,8 +281,8 @@ def show_predict(teams, elo, arg):
     print(f"\n=== PREDICTION ===")
     print(f"{t1_name} vs {t2_name}")
     print(f"\nELO Ratings:")
-    print(f"  {t1_name}: {t1_elo.get('elo', 1500):.0f} ({t1_elo.get('wins', 0)}-{t1_elo.get('losses', 0)}, {t1_elo.get('win_pct', 0):.1f}%)")
-    print(f"  {t2_name}: {t2_elo.get('elo', 1500):.0f} ({t2_elo.get('wins', 0)}-{t2_elo.get('losses', 0)}, {t2_elo.get('win_pct', 0):.1f}%)")
+    print(f"  {t1_name}: {t1_elo.get('elo', 1500):.0f} ({t1_elo.get('wins', 0)}-{t1_elo.get('losses', 0)}, {t1_elo.get('win_pct', '0.0')}%)")
+    print(f"  {t2_name}: {t2_elo.get('elo', 1500):.0f} ({t2_elo.get('wins', 0)}-{t2_elo.get('losses', 0)}, {t2_elo.get('win_pct', '0.0')}%)")
     print(f"\nWin Probability:")
     print(f"  {t1_name}: {prob:.1%}")
     print(f"  {t2_name}: {1-prob:.1%}")
@@ -225,16 +291,125 @@ def show_predict(teams, elo, arg):
     print(f"  Championship: Thunder 35.5%, Next: varies")
 
 def show_odds():
-    print("\n=== POLYMARKET NBA ODDS ===\n")
-    print("Note: Daily game markets currently unavailable\n")
-    print("2026 NBA Championship:")
-    print("  Oklahoma City Thunder: 35.5%")
-    print("  Houston Rockets: 2.9%")
-    print("  Cleveland Cavaliers: 6.2%")
-    print("  Denver Nuggets: 5.1%")
-    print("  Boston Celtics: 4.8%")
-    print("\n(Source: Polymarket - https://polymarket.com/market/2026-nba-champion)")
-    print("(Note: These are real-time market prices, may vary)")
+    """Show tonight's NBA game odds via Playwright."""
+    print("\n=== TONIGHT'S NBA GAMES - POLYMARKET ===\n")
+    
+    try:
+        from playwright.sync_api import sync_playwright
+        import re
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto('https://polymarket.com/sports/nba/games', timeout=20000)
+            page.wait_for_timeout(3000)
+            text = page.inner_text('body')
+            browser.close()
+        
+        team_map = {
+            'ind': 'Pacers', 'mil': 'Bucks', 'dal': 'Mavericks', 'cle': 'Cavaliers',
+            'det': 'Pistons', 'tor': 'Raptors', 'por': 'Trail Blazers', 'phi': '76ers',
+            'gsw': 'Warriors', 'nyk': 'Knicks', 'min': 'Timberwolves', 'okc': 'Thunder',
+            'uta': 'Jazz', 'sac': 'Kings', 'lal': 'Lakers', 'lac': 'Clippers',
+            'pho': 'Suns', 'den': 'Nuggets', 'mem': 'Grizzlies', 'nop': 'Pelicans',
+            'bos': 'Celtics', 'mia': 'Heat', 'atl': 'Hawks', 'orl': 'Magic',
+            'chi': 'Bulls', 'cha': 'Hornets', 'was': 'Wizards', 'hou': 'Rockets',
+            'sas': 'Spurs', 'bkn': 'Nets'
+        }
+        
+        matches = re.findall(r'([A-Za-z]{3})(\d+)¢', text)
+        games = []
+        seen = set()
+        for i in range(0, len(matches)-1, 2):
+            if i+1 < len(matches):
+                t1, o1 = matches[i]
+                t2, o2 = matches[i+1]
+                t1l, t2l = t1.lower(), t2.lower()
+                if t1l != t2l and t1l in team_map and t2l in team_map:
+                    key = tuple(sorted([t1l, t2l]))
+                    if key not in seen:
+                        seen.add(key)
+                        games.append((team_map[t1l], int(o1), team_map[t2l], int(o2)))
+        
+        if games:
+            for g in games[:6]:
+                print(f"  {g[0]:<16} {g[1]:>3}%  vs  {g[2]:<16} {g[3]:>3}%")
+            print("\n  (Source: polymarket.com)")
+            return
+        
+    except Exception as e:
+        print(f"  Browser error: {e}")
+    
+    # Fallback
+    print("  Could not load games")
+    print("  Championship futures:")
+    show_championship_odds()
+
+def show_championship_odds():
+    """Show 2026 NBA Championship odds from Polymarket API."""
+    print("\n=== 2026 NBA CHAMPIONSHIP ===\n")
+    
+    try:
+        import urllib.request
+        import json
+        
+        url = "https://gamma-api.polymarket.com/public-search?q=2026%20nba%20champion"
+        req = urllib.request.Request(url, headers={
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0"
+        })
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read())
+        
+        events = data.get('events', [])
+        
+        team_names = {
+            'oklahoma city thunder': 'Thunder', 'houston rockets': 'Rockets', 
+            'cleveland cavaliers': 'Cavaliers', 'denver nuggets': 'Nuggets',
+            'boston celtics': 'Celtics', 'san antonio spurs': 'Spurs',
+            'golden state warriors': 'Warriors', 'miami heat': 'Heat',
+            'milwaukee bucks': 'Bucks', 'phoenix suns': 'Suns',
+            'dallas mavericks': 'Mavericks', 'minnesota timberwolves': 'Timberwolves',
+            'new york knicks': 'Knicks', 'memphis grizzlies': 'Grizzlies',
+            'detroit pistons': 'Pistons', 'los angeles lakers': 'Lakers',
+            'la clippers': 'Clippers',
+        }
+        
+        markets_data = []
+        for e in events:
+            title = e.get('title', '')
+            # Only get main championship, not Rising Stars
+            if '2026' in title and 'champion' in title.lower() and 'rising stars' not in title.lower():
+                for m in e.get('markets', []):
+                    mvol = float(m.get('volume', 0))
+                    if mvol > 0:
+                        prices = json.loads(m['outcomePrices'])
+                        outcomes = json.loads(m['outcomes'])
+                        # Only process Yes/No markets (championship winner)
+                        if outcomes[0] != 'Yes':
+                            continue
+                        yes_price = float(prices[0])
+                        
+                        q_lower = m['question'].lower()
+                        team = "Team"
+                        for k, v in team_names.items():
+                            if k in q_lower:
+                                team = v
+                                break
+                        
+                        markets_data.append((team, yes_price * 100, mvol))
+        
+        markets_data.sort(key=lambda x: -x[1])
+        
+        for team, prob, mvol in markets_data[:5]:
+            bar = "█" * int(prob / 5)
+            print(f"  {team:<20} {prob:5.1f}% {bar}  ${mvol/1e6:.1f}M")
+        
+        print("\n  (Source: Polymarket)")
+        
+    except Exception as e:
+        print(f"  Error: {e}")
+        print("  Thunder 35.5% | Spurs 13.9% | Celtics 13.2%")
 
 def update_elo():
     print("Updating ELO...")
@@ -1089,6 +1264,106 @@ def show_matchup(query, save_png=False):
         
         print()
 
+def show_edge(save_png=False):
+    """Find edges: our model probability vs Polymarket odds."""
+    print("\n=== MODEL vs MARKET EDGES ===\n")
+    
+    # Get today's games from Polymarket
+    try:
+        from playwright.sync_api import sync_playwright
+        import re
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto('https://polymarket.com/sports/nba/games', timeout=20000)
+            page.wait_for_timeout(3000)
+            text = page.inner_text('body')
+            browser.close()
+        
+        team_map = {
+            'ind': 'Pacers', 'mil': 'Bucks', 'dal': 'Mavericks', 'cle': 'Cavaliers',
+            'det': 'Pistons', 'tor': 'Raptors', 'por': 'Trail Blazers', 'phi': '76ers',
+            'gsw': 'Warriors', 'nyk': 'Knicks', 'min': 'Timberwolves', 'okc': 'Thunder',
+            'uta': 'Jazz', 'sac': 'Kings', 'lal': 'Lakers', 'lac': 'Clippers',
+            'pho': 'Suns', 'den': 'Nuggets', 'mem': 'Grizzlies', 'nop': 'Pelicans',
+            'bos': 'Celtics', 'mia': 'Heat', 'atl': 'Hawks', 'orl': 'Magic',
+            'chi': 'Bulls', 'cha': 'Hornets', 'was': 'Wizards', 'hou': 'Rockets',
+            'sas': 'Spurs', 'bkn': 'Nets'
+        }
+        
+        # Full name to ELO ID mapping
+        team_to_elo = {
+            'Pacers': '1610612754', 'Bucks': '1610612749', 'Mavericks': '1610612742', 
+            'Cavaliers': '1610612739', 'Pistons': '1610612741', 'Raptors': '1610612761',
+            'Trail Blazers': '1610612757', '76ers': '1610612755', 'Warriors': '1610612744',
+            'Knicks': '1610612752', 'Timberwolves': '1610612750', 'Thunder': '1610612760',
+            'Jazz': '1610612762', 'Kings': '1610612758', 'Lakers': '1610612747',
+            'Clippers': '1610612746', 'Suns': '1610612756', 'Nuggets': '1610612743',
+            'Grizzlies': '1610612763', 'Pelicans': '1610612740', 'Celtics': '1610612738',
+            'Heat': '1610612748', 'Hawks': '1610612737', 'Magic': '1610612753',
+            'Bulls': '1610612741', 'Hornets': '1610612766', 'Wizards': '1610612764',
+            'Rockets': '1610612745', 'Spurs': '1610612759', 'Nets': '1610612751'
+        }
+        
+        matches = re.findall(r'([A-Za-z]{3})(\d+)¢', text)
+        games = []
+        seen = set()
+        for i in range(0, len(matches)-1, 2):
+            if i+1 < len(matches):
+                t1, o1 = matches[i]
+                t2, o2 = matches[i+1]
+                t1l, t2l = t1.lower(), t2.lower()
+                if t1l != t2l and t1l in team_map and t2l in team_map:
+                    key = tuple(sorted([t1l, t2l]))
+                    if key not in seen:
+                        seen.add(key)
+                        games.append((team_map[t1l], int(o1), team_map[t2l], int(o2)))
+        
+        if not games:
+            print("  No games found")
+            return
+            
+        elo = load_elo()
+        
+        def elo_prob(rating_a, rating_b):
+            return 1 / (1 + 10 ** ((rating_b - rating_a) / 400))
+        
+        print("  Comparing ELO model vs Polymarket odds:\n")
+        
+        edges = []
+        for t1, o1, t2, o2 in games[:5]:
+            t1_elo = team_to_elo.get(t1)
+            t2_elo = team_to_elo.get(t2)
+            
+            if t1_elo and t2_elo and t1_elo in elo and t2_elo in elo:
+                # ELO is nested dict with 'elo' key
+                r1 = elo[t1_elo].get('elo', 1500)
+                r2 = elo[t2_elo].get('elo', 1500)
+                our_prob = elo_prob(r1, r2) * 100
+                
+                # Compare our team1 win prob to market's team1 odds
+                market_prob = o1
+                edge = our_prob - market_prob
+                edges.append((t1, t2, our_prob, market_prob, edge))
+        
+        edges.sort(key=lambda x: abs(x[4]), reverse=True)
+        
+        for t1, t2, our, market, edge in edges:
+            direction = "⬆️" if edge > 0 else "⬇️"
+            print(f"  {t1} vs {t2}")
+            print(f"    ELO model: {our:5.1f}%")
+            print(f"    Market:    {market:5.1f}%")
+            print(f"    Edge:      {edge:+5.1f}% {direction}")
+            if abs(edge) > 5:
+                print(f"    ⚠️  STRONG EDGE!" if edge > 0 else f"    ⚠️  VALUE ON OTHER SIDE")
+            print()
+        
+        print("  (Polymarket + ELO)")
+        
+    except Exception as e:
+        print(f"  Error: {e}")
+
 
 def show_momentum(save_png=False):
     """Show who's hot and who's cold."""
@@ -1141,35 +1416,98 @@ def show_momentum(save_png=False):
         print()
 
 
+# ============== BANNER ==============
+
+def get_banner():
+    """NBA ANALYSIS banner - custom block chars with 3D shadow and orange gradient."""
+    # Import the banner module
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from banner import generate_banner
+    return generate_banner()
+
+def get_banner_plain():
+    """Plain text banner."""
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from banner import generate_banner_plain
+    return generate_banner_plain()
+
+def supports_color():
+    """Check if terminal supports ANSI colors."""
+    import os
+    if os.environ.get('TERM') == 'dumb':
+        return False
+    return True
+
+def get_prompt():
+    """Get the input prompt with color."""
+    CSI = '\033['
+    ORANGE = CSI + '38;2;255;140;0m'
+    RESET = CSI + '0m'
+    return f"{ORANGE}›{RESET} "
+
 def main():
+    # Import TUI
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    try:
+        from tui import render_dashboard, get_tools_list, get_skills_list
+    except ImportError:
+        # Fallback if TUI not available
+        from banner import generate_banner
+        print(generate_banner())
+        print("Loading data...")
+    
+    # Show TUI dashboard
+    render_dashboard()
+    
     print("Loading data...")
     elo = load_elo()
     teams = load_teams()
     print(f"✓ Loaded {len(teams)} teams, {len(elo)} ELO ratings\n")
     
-    print(HELP)
-    
     while True:
         try:
-            cmd = input("(NBA) ").strip()
+            cmd = input(get_prompt()).strip()
         except EOFError:
             break
         
         if not cmd:
             continue
         
-        if cmd.startswith('/'):
-            cmd = cmd[1:]  # Remove leading /
+        # Natural language query (no / prefix)
+        if not cmd.startswith('/'):
+            # Send to LLM for natural language processing
+            from tui import AMBER, RESET, ORANGE
+            print(f"\r{AMBER}Thinking...{RESET}")
+            sys.stdout.flush()
+            try:
+                from llm import ask
+                answer = ask(cmd)
+                print(f"\r{' ' * 50}\r{answer}\n")
+            except Exception as e:
+                print(f"Error: {e}")
+            print(f"{ORANGE}›{RESET} ", end="")
+            sys.stdout.flush()
+            continue
+        
+        # Command (starts with /)
+        cmd = cmd[1:]  # Remove leading /
         
         parts = cmd.split(' ', 1)
         cmd_name = parts[0].lower()
         arg = parts[1] if len(parts) > 1 else ""
         
         if cmd_name in ['quit', 'exit', 'q']:
-            print("Goodbye!")
+            from tui import ORANGE, RESET
+            print(f"{ORANGE}Goodbye!{RESET}")
             break
         elif cmd_name == 'help':
             print(HELP)
+        elif cmd_name == 'clear':
+            import subprocess
+            subprocess.run(['clear'])
+            render_dashboard()
         elif cmd_name == 'elo':
             save_png = '--png' in arg
             arg = arg.replace('--png', '').strip()
@@ -1209,6 +1547,9 @@ def main():
         elif cmd_name == 'matchup':
             save_png = '--png' in arg
             show_matchup(arg, save_png)
+        elif cmd_name == 'edge':
+            save_png = '--png' in arg
+            show_edge(save_png)
         elif cmd_name == 'momentum':
             save_png = '--png' in arg
             show_momentum(save_png)

@@ -1,0 +1,4 @@
+#!/bin/bash
+# One-word launcher for NBA Analyst CLI
+cd ~/HermesAnalysis
+exec python3 scripts/cli.py "$@"
