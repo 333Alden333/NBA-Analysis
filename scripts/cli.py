@@ -1,14 +1,125 @@
 #!/usr/bin/env python3
-"""Simple NBA Prediction CLI - Fixed version."""
+"""
+NBA ANALYST — Hermes Agent-style CLI for NBA Analysis & Prediction
+Hackathon submission for Nous Research using Hermes Agent framework.
 
+Launch with: nba
+"""
+
+import os
 import sys
 import json
+import shutil
+import datetime
+import time
 import urllib.request
-import os
+from pathlib import Path
+from collections import defaultdict
 
+# Set working directory to project root
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# ============== HELP ==============
+# ─── Rich imports ────────────────────────────────────────────────────────────
+from rich.console import Console
+from rich.panel import Panel
+from rich.columns import Columns
+from rich.text import Text
+from rich.table import Table
+from rich import box
+from rich.align import Align
+from rich.style import Style
+
+# ─── prompt_toolkit imports ──────────────────────────────────────────────────
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.formatted_text import ANSI
+from prompt_toolkit.styles import Style as PTStyle
+
+# ─── pyfiglet ────────────────────────────────────────────────────────────────
+import pyfiglet
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+APP_NAME = "NBA ANALYST"
+APP_VERSION = "0.1.0"
+APP_TAGLINE = "AI-Powered NBA Analysis & Prediction Platform"
+
+# Resolve GIF path — check several locations
+GIF_SEARCH_PATHS = [
+    Path(__file__).parent / "nba_banner_v4.gif",
+    Path(__file__).parent.parent / "data" / "nba_banner_v4.gif",
+    Path(__file__).parent.parent / "assets" / "nba_banner_v4.gif",
+    Path(__file__).parent.parent / "nba_banner_v4.gif",
+    Path.home() / "HermesAnalysis" / "data" / "nba_banner_v4.gif",
+    Path.home() / "HermesAnalysis" / "nba_banner_v4.gif",
+]
+
+# ANSI escape helpers
+CSI = "\033["
+CURSOR_UP = lambda n: f"{CSI}{n}A"
+CURSOR_DOWN = lambda n: f"{CSI}{n}B"
+CURSOR_COL = lambda n: f"{CSI}{n}G"
+CLEAR_LINE = f"{CSI}2K"
+HIDE_CURSOR = f"{CSI}?25l"
+SHOW_CURSOR = f"{CSI}?25h"
+RESET = f"{CSI}0m"
+
+# Color palette (orange/amber/cyan — Hermes Agent style)
+class Colors:
+    ORANGE = "#FF8C00"
+    AMBER = "#FFD700"
+    CYAN = "#00CED1"
+    BRIGHT_ORANGE = "#FF6600"
+    DIM_ORANGE = "#CC7000"
+    WHITE = "#FFFFFF"
+    GRAY = "#888888"
+    DIM = "#666666"
+    BORDER = "#FF8C00"
+    ACCENT = "#00CED1"
+    MUTED = "#B8860B"
+
+# Tools & Skills displayed in banner
+TOOLS = [
+    ("ELO Rankings", "Team strength ratings & rankings"),
+    ("ML Predictions", "GBM model · 73.5% accuracy"),
+    ("Pattern Engine", "Matchup classification system"),
+    ("Player Stats", "Per-game & season averages"),
+    ("Momentum", "Hot/cold streak detection"),
+    ("Injury Intel", "Injury report integration"),
+]
+
+SKILLS = [
+    ("nba_api", "Live NBA data pipeline"),
+    ("scikit-learn", "Gradient Boosted Models"),
+    ("SQLite", "Local game database"),
+    ("pandas", "Statistical analysis"),
+]
+
+# Slash commands (all 18 tools + utilities)
+COMMANDS = {
+    "/elo": "ELO rankings with chart [--png]",
+    "/games": "Recent game scores",
+    "/predict": "Matchup prediction — /predict Celtics Lakers",
+    "/odds": "Polymarket championship odds",
+    "/teams": "List all NBA teams",
+    "/player": "Player stats — /player Curry [--png]",
+    "/team": "Team stats — /team Lakers [--png]",
+    "/compare": "Compare players — /compare Curry vs LeBron [--png]",
+    "/trend": "PPG trend — /trend Luka [--png]",
+    "/top": "League leaders — /top pts|reb|ast|stl|blk|3pm [--png]",
+    "/heatmap": "Stats correlation [--png]",
+    "/shot": "Shot chart — /shot Curry [--png]",
+    "/pattern": "Player vs team — /pattern Curry vs Lakers",
+    "/matchup": "Matchup classification — /matchup LeBron vs Celtics",
+    "/edge": "Betting edges (model vs market)",
+    "/momentum": "Who's hot / who's cold",
+    "/update": "Refresh ELO ratings",
+    "/clear": "Clear screen and re-dashboard",
+    "/help": "Show all commands & usage",
+    "/quit": "Exit NBA Analyst",
+}
 
 HELP = """
 === NBA ANALYST v1.0.0 ===
@@ -37,25 +148,499 @@ Utilities:
   clear       Clear screen and redashboard
   quit        Exit
 
-Examples:
-  /elo
-  /elo --png
-  /predict Celtics Lakers
-  /player Curry
-  /team Lakers
-  /compare Curry vs LeBron
-  /trend Luka
-  /top pts
-  /heatmap --png
-  /shot Curry
-  /pattern Curry vs Lakers
-  /momentum
-  /matchup LeBron vs Celtics
-  /odds
-  /games
+Natural language:
+  Just type a question without / to use AI:
+  "who wins tonight?"
+  "compare the top 3 teams"
 """
 
-# ============== FUNCTIONS ==============
+# ═══════════════════════════════════════════════════════════════════════════════
+# GIF → HALF-BLOCK RENDERER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Content crop box for nba_banner_v4.gif (player silhouette region)
+GIF_CROP = (40, 300, 290, 880)  # left, top, right, bottom
+GIF_ART_WIDTH = 22  # characters wide
+GIF_ART_LINES = 18  # lines tall (each line = 2 vertical pixels)
+
+
+def find_gif_path() -> Path | None:
+    """Search for the GIF file in known locations."""
+    for p in GIF_SEARCH_PATHS:
+        if p.exists():
+            return p
+    return None
+
+
+def load_gif_frames(gif_path: Path, step: int = 2) -> list[list[str]]:
+    """
+    Load and pre-render GIF frames to half-block terminal art.
+
+    Args:
+        gif_path: Path to the GIF file
+        step: Frame step (2 = every other frame, for speed)
+
+    Returns:
+        List of frames, each frame is a list of ANSI-colored strings
+    """
+    try:
+        from PIL import Image
+        import numpy as np
+    except ImportError:
+        return []
+
+    gif = Image.open(gif_path)
+    n_frames = getattr(gif, "n_frames", 1)
+    duration_ms = gif.info.get("duration", 60)
+
+    frames = []
+    for i in range(0, n_frames, step):
+        gif.seek(i)
+        frame_rgb = gif.copy().convert("RGB")
+        arr = np.array(frame_rgb)
+
+        art = _render_halfblock(arr, GIF_CROP, GIF_ART_WIDTH, GIF_ART_LINES)
+        frames.append(art)
+
+    return frames
+
+
+def _render_halfblock(
+    arr, crop: tuple, width: int, height_lines: int
+) -> list[str]:
+    """Convert numpy RGB array to half-block ANSI art lines."""
+    from PIL import Image as PILImage
+    import numpy as np
+
+    l, t, r, b = crop
+    cropped = PILImage.fromarray(arr[t:b, l:r])
+    px_h = height_lines * 2
+    resized = cropped.resize((width, px_h), PILImage.LANCZOS)
+    data = np.array(resized)
+
+    lines = []
+    for row in range(0, px_h, 2):
+        chars = []
+        for col in range(width):
+            tr = int(data[row, col, 0])
+            tg, tb = int(data[row, col, 1]), int(data[row, col, 2])
+            if row + 1 < px_h:
+                br = int(data[row + 1, col, 0])
+                bg, bb = int(data[row + 1, col, 1]), int(data[row + 1, col, 2])
+            else:
+                br, bg, bb = 0, 0, 0
+
+            top_on = tr > 35
+            bot_on = br > 35
+
+            if top_on and bot_on:
+                r, g, b = (tr + br) // 2, (tg + bg) // 2, (tb + bb) // 2
+                chars.append(f"\033[38;2;{r};{g};{b}m█")
+            elif top_on:
+                chars.append(f"\033[38;2;{tr};{tg};{tb}m▀")
+            elif bot_on:
+                chars.append(f"\033[38;2;{br};{bg};{bb}m▄")
+            else:
+                chars.append(" ")
+
+        lines.append("".join(chars) + RESET)
+    return lines
+
+
+def render_static_frame(gif_path: Path) -> list[str]:
+    """Render frame 0 as static art for the banner."""
+    try:
+        from PIL import Image
+        import numpy as np
+    except ImportError:
+        return _fallback_art()
+
+    gif = Image.open(gif_path)
+    gif.seek(0)
+    arr = np.array(gif.copy().convert("RGB"))
+    return _render_halfblock(arr, GIF_CROP, GIF_ART_WIDTH, GIF_ART_LINES)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ANIMATED STARTUP SEQUENCE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def play_startup_animation(frames: list[list[str]], duration_secs: float = 3.0):
+    """
+    Play the GIF animation centered in the terminal for a few seconds.
+    Uses ANSI cursor repositioning to overwrite frames in-place.
+    """
+    if not frames:
+        return
+
+    n_lines = len(frames[0])
+    frame_delay = duration_secs / len(frames)
+    # Clamp to reasonable range
+    frame_delay = max(0.04, min(0.12, frame_delay))
+
+    term_w = shutil.get_terminal_size((80, 24)).columns
+
+    # Print header first
+    header_raw = pyfiglet.figlet_format("NBA ANALYSIS", font="pagga")
+    header_lines = header_raw.rstrip("\n").split("\n")
+    gradient = [
+        "\033[38;2;255;110;30m",  # Bright orange
+        "\033[38;2;255;70;25m",  # Medium orange
+        "\033[38;2;160;40;12m",  # Dark orange
+    ]
+
+    sys.stdout.write(HIDE_CURSOR)
+    sys.stdout.write("\n")
+
+    # Print pagga header centered with gradient
+    for i, line in enumerate(header_lines):
+        color = gradient[min(i, len(gradient) - 1)]
+        pad = max(0, (term_w - len(line)) // 2)
+        sys.stdout.write(f" " * pad + color + line + RESET + "\n")
+
+    sys.stdout.write("\n")
+    sys.stdout.flush()
+
+    # Print first frame to establish the art region
+    art_pad = max(0, (term_w - GIF_ART_WIDTH) // 2)
+    for line in frames[0]:
+        sys.stdout.write(" " * art_pad + line + "\n")
+    sys.stdout.flush()
+
+    # Animate: overwrite the art region with each subsequent frame
+    for frame in frames[1:]:
+        time.sleep(frame_delay)
+        # Move cursor up to start of art region
+        sys.stdout.write(CURSOR_UP(n_lines))
+        for line in frame:
+            sys.stdout.write("\r" + " " * art_pad + line + "\n")
+        sys.stdout.flush()
+
+    # Small pause on last frame
+    time.sleep(0.3)
+
+    # Clear the animation area
+    total_clear = len(header_lines) + 2 + n_lines
+    sys.stdout.write(CURSOR_UP(total_clear))
+    for _ in range(total_clear + 1):
+        sys.stdout.write(CLEAR_LINE + "\n")
+    sys.stdout.write(CURSOR_UP(total_clear + 1))
+    sys.stdout.write(SHOW_CURSOR)
+    sys.stdout.flush()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FALLBACK ASCII ART (when GIF not found)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+FALLBACK_ART_LINES = [
+    r"      ,,,,,       ",
+    r"    ,@@@@@@,      ",
+    r"   @@'---'@@      ",
+    r"  @@|     |@@     ",
+    r"  @@|  *  |@@     ",
+    r"  @@|     |@@     ",
+    r"   @@,---,@@      ",
+    r"    '@@@@@@'      ",
+    r"      '''''       ",
+    r"    /       \     ",
+    r"   / N B A   \    ",
+    r"  /  ANALYST  \   ",
+    r" '─────────────'  ",
+]
+
+
+def _fallback_art() -> list[str]:
+    """Return fallback ASCII art lines with orange ANSI coloring."""
+    return [f"\033[38;2;255;110;30m{line}{RESET}" for line in FALLBACK_ART_LINES]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BANNER BUILDER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def get_terminal_width() -> int:
+    return shutil.get_terminal_size((80, 24)).columns
+
+
+def build_header_text() -> Text:
+    """Build the pagga-font header with orange gradient."""
+    raw = pyfiglet.figlet_format("NBA ANALYSIS", font="pagga")
+    lines = raw.rstrip("\n").split("\n")
+    header = Text()
+    gradient = [Colors.BRIGHT_ORANGE, Colors.ORANGE, Colors.AMBER]
+    for i, line in enumerate(lines):
+        color = gradient[min(i, len(gradient) - 1)]
+        header.append(line + "\n", style=Style(color=color, bold=True))
+    return header
+
+
+def build_tools_lines() -> list[tuple[str, str, str]]:
+    """Build tools/skills as structured lines: (icon, label, desc)."""
+    # Count how many tool commands aren't shown in the banner
+    utility_cmds = {"/clear", "/help", "/quit"}
+    total_tool_cmds = len([c for c in COMMANDS if c not in utility_cmds])
+    shown = len(TOOLS)
+    hidden = total_tool_cmds - shown
+
+    lines = []
+    lines.append(("", "TOOLS", ""))
+    for name, desc in TOOLS:
+        lines.append(("▸", name, desc))
+    if hidden > 0:
+        lines.append(("", f"  +{hidden} more — /help", ""))
+    lines.append(("", "", ""))
+    lines.append(("", "SKILLS", ""))
+    for name, desc in SKILLS:
+        lines.append(("◆", name, desc))
+    return lines
+
+
+def build_two_column_body(art_lines: list[str]) -> Text:
+    """
+    Build side-by-side layout: GIF art (left) │ tools+skills (right).
+    Manually line-by-line for precise alignment.
+    """
+    tool_lines = build_tools_lines()
+    max_lines = max(len(art_lines), len(tool_lines))
+
+    # Strip ANSI to measure visual width of art
+    import re
+    ansi_re = re.compile(r"\033\[[0-9;]*m")
+
+    art_visual_widths = []
+    for l in art_lines:
+        stripped = ansi_re.sub("", l)
+        art_visual_widths.append(len(stripped))
+    art_width = max(art_visual_widths) if art_visual_widths else GIF_ART_WIDTH
+
+    result = Text()
+    for i in range(max_lines):
+        # Left column: art (raw ANSI — append as-is via markup escape)
+        if i < len(art_lines):
+            stripped = ansi_re.sub("", art_lines[i])
+            pad_needed = art_width - len(stripped)
+            # We need to output raw ANSI, so use Text.append_text or direct
+            result.append(stripped.ljust(art_width), style=Style(color=Colors.ORANGE))
+        else:
+            result.append(" " * art_width)
+
+        # Divider
+        result.append("  │  ", style=Style(color=Colors.DIM))
+
+        # Right column: tools/skills
+        if i < len(tool_lines):
+            icon, label, desc = tool_lines[i]
+            if icon:
+                result.append(f"{icon} ", style=Style(color=Colors.ORANGE))
+            else:
+                result.append("  ")
+
+            if label and not desc:
+                result.append(label, style=Style(color=Colors.CYAN, bold=True))
+            elif label:
+                result.append(f"{label:<16}", style=Style(color=Colors.AMBER, bold=True))
+                result.append(desc, style=Style(color=Colors.GRAY))
+
+        result.append("\n")
+
+    return result
+
+
+def build_two_column_ansi(art_lines: list[str]) -> str:
+    """
+    Build two-column layout as raw ANSI string.
+    This preserves the true-color GIF art rendering.
+    """
+    import re
+    ansi_re = re.compile(r"\033\[[0-9;]*m")
+
+    tool_lines = build_tools_lines()
+    max_lines = max(len(art_lines), len(tool_lines))
+
+    # Measure visual art width
+    art_visual_widths = []
+    for l in art_lines:
+        stripped = ansi_re.sub("", l)
+        art_visual_widths.append(len(stripped))
+    art_width = max(art_visual_widths) if art_visual_widths else GIF_ART_WIDTH
+
+    # ANSI color codes for right column
+    C_ORANGE = "\033[38;2;255;140;0m"
+    C_AMBER = "\033[38;2;255;215;0m"
+    C_CYAN = "\033[38;2;0;206;209m"
+    C_GRAY = "\033[38;2;136;136;136m"
+    C_DIM = "\033[38;2;102;102;102m"
+    C_BOLD = "\033[1m"
+    RST = RESET
+
+    output_lines = []
+    for i in range(max_lines):
+        line = ""
+
+        # Left: art with true colors
+        if i < len(art_lines):
+            raw = art_lines[i]
+            stripped = ansi_re.sub("", raw)
+            pad = art_width - len(stripped)
+            line += raw + (" " * pad)
+        else:
+            line += " " * art_width
+
+        # Divider
+        line += f"  {C_DIM}│{RST}  "
+
+        # Right: tools/skills
+        if i < len(tool_lines):
+            icon, label, desc = tool_lines[i]
+            if icon:
+                line += f"{C_ORANGE}{icon}{RST} "
+            else:
+                line += "  "
+
+            if label and not desc:
+                # "+N more" line renders dim, section headers render bold cyan
+                if label.strip().startswith("+"):
+                    line += f"{C_DIM}{label}{RST}"
+                else:
+                    line += f"{C_CYAN}{C_BOLD}{label}{RST}"
+            elif label:
+                line += f"{C_AMBER}{C_BOLD}{label:<16}{RST}"
+                line += f"{C_GRAY}{desc}{RST}"
+
+        output_lines.append(line)
+
+    return "\n".join(output_lines)
+
+
+def build_info_line() -> Text:
+    """Build the model/path/session info line below the box."""
+    info = Text()
+    info.append("  Model ", style=Style(color=Colors.DIM))
+    info.append("GBM v2 · scikit-learn", style=Style(color=Colors.AMBER))
+    info.append("  │  ", style=Style(color=Colors.DIM))
+    info.append("Accuracy ", style=Style(color=Colors.DIM))
+    info.append("73.5%", style=Style(color=Colors.CYAN, bold=True))
+    info.append("  │  ", style=Style(color=Colors.DIM))
+    info.append("DB ", style=Style(color=Colors.DIM))
+    info.append("SQLite", style=Style(color=Colors.AMBER))
+    info.append("  │  ", style=Style(color=Colors.DIM))
+    info.append("Session ", style=Style(color=Colors.DIM))
+    info.append(
+        datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
+        style=Style(color=Colors.GRAY),
+    )
+    return info
+
+
+def build_welcome_banner(console: Console, gif_path: Path | None = None) -> None:
+    """Build and print the full Hermes-style welcome banner."""
+    term_width = get_terminal_width()
+
+    # ── Get art lines (GIF or fallback) ──
+    if gif_path and gif_path.exists():
+        art_lines = render_static_frame(gif_path)
+    else:
+        art_lines = _fallback_art()
+
+    # ── Header (pagga font) ──
+    header = build_header_text()
+
+    # ── Build the two-column body as raw ANSI ──
+    body_ansi = build_two_column_ansi(art_lines)
+
+    # ── Assemble into Rich panel ──
+    # We use a Table to stack header + tagline + body
+    combined = Table(
+        show_header=False, show_edge=False, box=None, padding=0, expand=True
+    )
+    combined.add_column(ratio=1)
+    combined.add_row(Align.center(header))
+    combined.add_row(
+        Text(
+            f"  {APP_TAGLINE}",
+            style=Style(color=Colors.CYAN, italic=True),
+        )
+    )
+    combined.add_row(Text(""))  # spacer
+
+    # For the body, print the ANSI content directly via Text.from_ansi
+    body_text = Text.from_ansi(body_ansi)
+    combined.add_row(body_text)
+
+    panel = Panel(
+        combined,
+        border_style=Style(color=Colors.ORANGE),
+        box=box.HEAVY,
+        padding=(1, 2),
+        expand=True,
+    )
+
+    console.print()
+    console.print(panel)
+    console.print(build_info_line())
+    console.print()
+
+    # ── Welcome message ──
+    welcome = Text()
+    welcome.append("  Welcome to ", style=Style(color=Colors.GRAY))
+    welcome.append("NBA Analyst", style=Style(color=Colors.ORANGE, bold=True))
+    welcome.append(". Type ", style=Style(color=Colors.GRAY))
+    welcome.append("/help", style=Style(color=Colors.CYAN, bold=True))
+    welcome.append(
+        " for commands or ask anything about the NBA.",
+        style=Style(color=Colors.GRAY),
+    )
+    console.print(welcome)
+    console.print()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DATA FUNCTIONS & COMMAND HANDLERS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _find_player(cur, name_query, limit=5):
+    """
+    Smart player search: handles 'Curry', 'steph curry', 'Stephen Curry', etc.
+    Searches first_name, last_name, AND the concatenated full name.
+    Also splits multi-word queries to match first + last independently.
+    Returns list of (player_id, first_name, last_name) tuples.
+    """
+    q = name_query.strip()
+    if not q:
+        return []
+
+    # Strategy 1: exact full-name match (first || ' ' || last)
+    results = cur.execute("""
+        SELECT player_id, first_name, last_name FROM players
+        WHERE (first_name || ' ' || last_name) LIKE ?
+        LIMIT ?
+    """, (f"%{q}%", limit)).fetchall()
+    if results:
+        return results
+
+    # Strategy 2: split into words and match first_name + last_name
+    words = q.split()
+    if len(words) >= 2:
+        results = cur.execute("""
+            SELECT player_id, first_name, last_name FROM players
+            WHERE first_name LIKE ? AND last_name LIKE ?
+            LIMIT ?
+        """, (f"%{words[0]}%", f"%{words[-1]}%", limit)).fetchall()
+        if results:
+            return results
+
+    # Strategy 3: single word — search either column
+    results = cur.execute("""
+        SELECT player_id, first_name, last_name FROM players
+        WHERE first_name LIKE ? OR last_name LIKE ?
+        LIMIT ?
+    """, (f"%{q}%", f"%{q}%", limit)).fetchall()
+    return results
+
 
 def compute_elo_from_db():
     """Compute live ELO ratings from box_scores in database."""
@@ -70,10 +655,15 @@ def compute_elo_from_db():
     team_names = {row[0]: row[1] for row in cur.fetchall()}
     
     # Get game scores for current season (00225 = 2025-26)
+    # Deduplicate: take MAX points per player per game, THEN sum per team
     cur.execute("""
-        SELECT game_id, team_id, SUM(points) as total_points
-        FROM box_scores
-        WHERE game_id LIKE '00225%'
+        SELECT game_id, team_id, SUM(player_pts) as total_points
+        FROM (
+            SELECT game_id, team_id, player_id, MAX(points) as player_pts
+            FROM box_scores
+            WHERE game_id LIKE '00225%'
+            GROUP BY game_id, team_id, player_id
+        )
         GROUP BY game_id, team_id
     """)
     game_scores = defaultdict(dict)
@@ -167,10 +757,17 @@ def get_recent_games(teams):
     
     engine = create_db_engine("data/hermes.db")
     with get_session(engine) as session:
-        game_teams = session.query(
-            BoxScore.game_id, BoxScore.team_id,
-            func.sum(BoxScore.points).label('pts'),
-        ).group_by(BoxScore.game_id, BoxScore.team_id).all()
+        # Deduplicate: MAX per player per game, then SUM per team
+        from sqlalchemy import text as sa_text
+        game_teams = session.execute(sa_text("""
+            SELECT game_id, team_id, SUM(player_pts) as pts
+            FROM (
+                SELECT game_id, team_id, player_id, MAX(points) as player_pts
+                FROM box_scores
+                GROUP BY game_id, team_id, player_id
+            )
+            GROUP BY game_id, team_id
+        """)).fetchall()
     
     games_data = defaultdict(dict)
     for game_id, team_id, pts in game_teams:
@@ -452,12 +1049,7 @@ def show_player(name_query, save_png=False):
     cur = conn.cursor()
     
     # Find player
-    player = cur.execute("""
-        SELECT player_id, first_name, last_name 
-        FROM players 
-        WHERE first_name LIKE ? OR last_name LIKE ?
-        LIMIT 5
-    """, (f"%{name_query}%", f"%{name_query}%")).fetchall()
+    player = _find_player(cur, name_query, limit=5)
     
     if not player:
         print(f"No players found matching '{name_query}'")
@@ -716,10 +1308,10 @@ def show_compare(query, save_png=False):
     cur = conn.cursor()
     
     # Find players
-    p1 = cur.execute("SELECT player_id, first_name, last_name FROM players WHERE first_name LIKE ? OR last_name LIKE ? LIMIT 1", 
-                    (f"%{p1_query}%", f"%{p1_query}%")).fetchone()
-    p2 = cur.execute("SELECT player_id, first_name, last_name FROM players WHERE first_name LIKE ? OR last_name LIKE ? LIMIT 1", 
-                    (f"%{p2_query}%", f"%{p2_query}%")).fetchone()
+    p1 = _find_player(cur, p1_query, limit=1)
+    p1 = p1[0] if p1 else None
+    p2 = _find_player(cur, p2_query, limit=1)
+    p2 = p2[0] if p2 else None
     
     if not p1 or not p2:
         print("Could not find both players. Be more specific.")
@@ -737,7 +1329,7 @@ def show_compare(query, save_png=False):
         FROM box_scores WHERE player_id = ? AND minutes > 0
     """, (p2[0],)).fetchone()
     
-    print(f"\n=== {p1[1]} {p2[1]} vs {p2[1]} {p2[2]} ===")
+    print(f"\n=== {p1[1]} {p1[2]} vs {p2[1]} {p2[2]} ===")
     print(f"\nCareer Averages (2022-23 onwards):")
     print(f"{'Player':<20} {'PPG':>6} {'RPG':>6} {'APG':>6} {'GP':>6}")
     print("-" * 50)
@@ -794,8 +1386,8 @@ def show_trend(name_query, save_png=False):
     conn = sqlite3.connect("data/hermes.db")
     cur = conn.cursor()
     
-    player = cur.execute("SELECT player_id, first_name, last_name FROM players WHERE first_name LIKE ? OR last_name LIKE ? LIMIT 1",
-                        (f"%{name_query}%", f"%{name_query}%")).fetchone()
+    player = _find_player(cur, name_query, limit=1)
+    player = player[0] if player else None
     
     if not player:
         print(f"No player found matching '{name_query}'")
@@ -1036,8 +1628,8 @@ def show_shot(name_query, save_png=False):
     cur = conn.cursor()
     
     # Find player
-    player = cur.execute("SELECT player_id, first_name, last_name FROM players WHERE first_name LIKE ? OR last_name LIKE ? LIMIT 1",
-                       (f"%{name_query}%", f"%{name_query}%")).fetchone()
+    player = _find_player(cur, name_query, limit=1)
+    player = player[0] if player else None
     
     if not player:
         print(f"No player found matching '{name_query}'")
@@ -1056,66 +1648,144 @@ def show_shot(name_query, save_png=False):
         conn.close()
         return
     
-    print(f"\n=== {player[1]} {player[2]} Shot Chart ===")
+    # Get season range
+    season_range = cur.execute("""
+        SELECT MIN(g.season) as min_season, MAX(g.season) as max_season
+        FROM shot_charts s
+        JOIN games g ON s.game_id = g.game_id
+        WHERE s.player_id = ?
+    """, (player[0],)).fetchone()
+    
+    season_str = ""
+    if season_range and season_range[0]:
+        season_str = f" | {season_range[0]} - {season_range[1]}"
+    
+    print(f"\n=== {player[1]} {player[2]} Shot Chart{season_str} ===")
     print(f"Total shots: {len(shots)}")
     
     made = sum(1 for s in shots if s[2] == 1)
     print(f"Made: {made} ({made/len(shots)*100:.1f}%)")
     
+    # Season breakdown - use games.season column directly
+    season_data = cur.execute("""
+        SELECT 
+            g.season,
+            COUNT(DISTINCT s.game_id) as games,
+            COUNT(*) as shots,
+            SUM(s.shot_made) as made
+        FROM shot_charts s
+        JOIN games g ON s.game_id = g.game_id
+        WHERE s.player_id = ?
+        GROUP BY g.season
+        ORDER BY g.season DESC
+    """, (player[0],)).fetchall()
+    
+    if len(season_data) > 1:
+        print("\nBy season:")
+        for row in season_data:
+            pct = row[3]/row[2]*100 if row[2] > 0 else 0
+            print(f"  {row[0]}: {row[1]} games, {row[2]} shots, {row[3]} made ({pct:.1f}%)")
+    
     if save_png:
-        # Draw court
-        def draw_court(ax=None, color='black', lw=2):
+        # ── Draw court ──
+        def draw_court(ax=None, color='#333333', lw=1.5):
             if ax is None:
                 ax = plt.gca()
-            
-            hoop = Circle((0, 0), radius=7.5, linewidth=lw, color=color, fill=False)
-            backboard = Rectangle((-30, -7.5), 60, -1, linewidth=lw, color=color)
-            outer_box = Rectangle((-80, -47.5), 190, 160, linewidth=lw, color=color, fill=False)
-            inner_box = Rectangle((-60, -47.5), 120, 190, linewidth=lw, color=color, fill=False)
-            top_free_throw = Arc((0, 142.5), 120, 120, theta1=0, theta2=180, linewidth=lw, color=color, fill=False)
-            bottom_free_throw = Arc((0, 142.5), 120, 120, theta1=180, theta2=0, linewidth=lw, color=color, linestyle='dashed')
-            corner_three_a = Rectangle((-220, -47.5), 0, 140, linewidth=lw, color=color)
-            corner_three_b = Rectangle((220, -47.5), 0, 140, linewidth=lw, color=color)
-            three_arc = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw, color=color)
-            center_outer_arc = Arc((0, 422.5), 120, 120, theta1=180, theta2=0, linewidth=lw, color=color)
-            
-            court_elements = [hoop, backboard, outer_box, inner_box, top_free_throw, 
-                            bottom_free_throw, corner_three_a, corner_three_b, three_arc, center_outer_arc]
-            
+
+            court_elements = [
+                Circle((0, 0), radius=7.5, linewidth=lw, color=color, fill=False),          # Hoop
+                Rectangle((-30, -7.5), 60, -1, linewidth=lw, color=color),                   # Backboard
+                Rectangle((-80, -47.5), 160, 190, linewidth=lw, color=color, fill=False),     # Outer box
+                Rectangle((-60, -47.5), 120, 190, linewidth=lw, color=color, fill=False),     # Inner box
+                Arc((0, 142.5), 120, 120, theta1=0, theta2=180, linewidth=lw, color=color),   # FT circle top
+                Arc((0, 142.5), 120, 120, theta1=180, theta2=0, linewidth=lw, color=color, linestyle='dashed'),
+                Rectangle((-220, -47.5), 0, 140, linewidth=lw, color=color),                  # Corner 3 left
+                Rectangle((220, -47.5), 0, 140, linewidth=lw, color=color),                   # Corner 3 right
+                Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw, color=color),      # 3pt arc
+                Arc((0, 422.5), 120, 120, theta1=180, theta2=0, linewidth=lw, color=color),   # Center court
+            ]
+
             for element in court_elements:
                 ax.add_patch(element)
-            
             return ax
-        
-        fig, ax = plt.subplots(figsize=(12, 11))
+
+        # ── Plot ──
+        fig, ax = plt.subplots(figsize=(12, 11), facecolor='#FAFAFA')
+        ax.set_facecolor('#FAFAFA')
         draw_court(ax)
         ax.set_xlim(-250, 250)
         ax.set_ylim(-50, 450)
         ax.set_aspect('equal')
-        
-        # Plot shots
-        for shot in shots:
-            x, y, made, dist, action, stype = shot
-            color = '#17408B' if made == 1 else '#C9082A'  # Blue for made, Red for miss
-            ax.scatter(x, y, c=color, s=100, alpha=0.6)
-        
-        # Legend
+
+        # ── Colors ──
+        # Using green/red instead of blue/red — much more distinguishable
+        COLOR_MADE = '#2E8B57'     # Sea green
+        COLOR_MISSED = '#DC143C'   # Crimson
+        EDGE_MADE = '#1B5E20'      # Dark green edge
+        EDGE_MISSED = '#8B0000'    # Dark red edge
+
+        # Handle shot_made being int, bool, or string
+        def is_made(val):
+            if isinstance(val, (int, float)):
+                return val == 1
+            if isinstance(val, bool):
+                return val
+            if isinstance(val, str):
+                return val.lower() in ('1', 'true', 'yes')
+            return False
+
+        made_count = sum(1 for s in shots if is_made(s[2]))
+        missed_count = len(shots) - made_count
+
+        # Separate made/missed for proper layering
+        made_x = [s[0] for s in shots if is_made(s[2])]
+        made_y = [s[1] for s in shots if is_made(s[2])]
+        miss_x = [s[0] for s in shots if not is_made(s[2])]
+        miss_y = [s[1] for s in shots if not is_made(s[2])]
+
+        # Plot missed first (underneath), then made on top
+        ax.scatter(miss_x, miss_y,
+                   c=COLOR_MISSED, s=120, alpha=0.7,
+                   edgecolors=EDGE_MISSED, linewidths=0.8,
+                   zorder=2, label='_nolegend_')
+        ax.scatter(made_x, made_y,
+                   c=COLOR_MADE, s=120, alpha=0.7,
+                   edgecolors=EDGE_MADE, linewidths=0.8,
+                   zorder=3, label='_nolegend_')
+
+        # ── Legend (using SAME alpha as the dots so colors match) ──
         from matplotlib.lines import Line2D
-        legend_elements = [Line2D([0], [0], marker='o', color='w', markerfacecolor='#17408B', 
-                                 markersize=10, label='Made'),
-                         Line2D([0], [0], marker='o', color='w', markerfacecolor='#C9082A', 
-                                 markersize=10, label='Missed')]
-        ax.legend(handles=legend_elements, loc='upper right')
-        
-        ax.set_title(f'{player[1]} {player[2]} - Shot Chart', fontsize=14, fontweight='bold')
-        ax.set_xlabel('Court Width (units)')
-        ax.set_ylabel('Court Length (units)')
-        
+        legend_elements = [
+            Line2D([0], [0], marker='o', color='none',
+                   markerfacecolor=COLOR_MADE, markeredgecolor=EDGE_MADE,
+                   markersize=12, markeredgewidth=0.8, alpha=0.7,
+                   label=f'Made ({made_count})'),
+            Line2D([0], [0], marker='o', color='none',
+                   markerfacecolor=COLOR_MISSED, markeredgecolor=EDGE_MISSED,
+                   markersize=12, markeredgewidth=0.8, alpha=0.7,
+                   label=f'Missed ({missed_count})'),
+        ]
+        ax.legend(handles=legend_elements, loc='upper right', fontsize=12,
+                  framealpha=0.9, edgecolor='#CCCCCC')
+
+        # ── Labels ──
+        ax.set_title(f'{player[1]} {player[2]} — Shot Chart{season_str}',
+                     fontsize=16, fontweight='bold', pad=15)
+        ax.set_xlabel('Court Width (units)', fontsize=11)
+        ax.set_ylabel('Court Length (units)', fontsize=11)
+
+        # ── Stats annotation ──
+        pct = made_count / len(shots) * 100 if shots else 0
+        ax.text(0.02, 0.98,
+                f'{len(shots)} shots  ·  {pct:.1f}% FG',
+                transform=ax.transAxes, fontsize=11, verticalalignment='top',
+                bbox=dict(boxstyle='round,pad=0.4', facecolor='white', edgecolor='#CCCCCC', alpha=0.9))
+
         plt.tight_layout()
-        
+
         filename = f"{player[1]}_{player[2]}_shot_chart.png".replace(" ", "_")
         filepath = os.path.join("data", filename)
-        plt.savefig(filepath, dpi=150, bbox_inches='tight')
+        plt.savefig(filepath, dpi=150, bbox_inches='tight', facecolor='#FAFAFA')
         plt.close()
         print(f"\n✓ Chart saved to: {filepath}")
     
@@ -1416,149 +2086,354 @@ def show_momentum(save_png=False):
         print()
 
 
-# ============== BANNER ==============
+# ═══════════════════════════════════════════════════════════════════════════════
+# LLM INTEGRATION (OpenRouter)
+# ═══════════════════════════════════════════════════════════════════════════════
 
-def get_banner():
-    """NBA ANALYSIS banner - custom block chars with 3D shadow and orange gradient."""
-    # Import the banner module
-    import sys
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from banner import generate_banner
-    return generate_banner()
 
-def get_banner_plain():
-    """Plain text banner."""
-    import sys
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from banner import generate_banner_plain
-    return generate_banner_plain()
+def _get_api_key():
+    """Get OpenRouter API key from ~/.hermes/.env."""
+    env_path = os.path.expanduser("~/.hermes/.env")
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            for line in f:
+                if line.startswith("OPENROUTER_API_KEY="):
+                    return line.split("=", 1)[1].strip()
+    return os.environ.get("OPENROUTER_API_KEY")
 
-def supports_color():
-    """Check if terminal supports ANSI colors."""
-    import os
-    if os.environ.get('TERM') == 'dumb':
-        return False
-    return True
 
-def get_prompt():
-    """Get the input prompt with color."""
-    CSI = '\033['
-    ORANGE = CSI + '38;2;255;140;0m'
-    RESET = CSI + '0m'
-    return f"{ORANGE}›{RESET} "
+NBA_TOOLS_CONTEXT = """You are NBA Analyst, an AI assistant embedded in a terminal CLI with a live SQLite database of NBA stats.
 
-def main():
-    # Import TUI
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+CRITICAL RULES:
+1. You do NOT have direct access to the database. You CANNOT look up stats yourself.
+2. NEVER invent or guess specific numbers (points, percentages, records, etc). You don't know current stats.
+3. To answer data questions, output the correct /command — the CLI will auto-execute it and show real data.
+4. Put each command on its own line starting with exactly / so the CLI can detect and run it.
+5. Keep prose brief — 1-3 sentences of context, then the commands. No long paragraphs.
+
+Available commands:
+  /elo                          - Team ELO power rankings
+  /games                        - Recent game scores
+  /predict <team1> <team2>      - Win probability (e.g. /predict Celtics Lakers)
+  /odds                         - Polymarket championship odds
+  /teams                        - List all NBA teams
+  /player <name>                - Player season stats (use last name: /player Curry)
+  /team <name>                  - Team season record (e.g. /team Lakers)
+  /compare <p1> vs <p2>         - Compare two players (e.g. /compare Curry vs LeBron)
+  /trend <name>                 - Player PPG trend (e.g. /trend Luka)
+  /top <stat>                   - League leaders: pts, reb, ast, stl, blk, 3pm
+  /shot <name>                  - Player shot chart
+  /pattern <player> vs <team>   - Player matchup patterns
+  /matchup <player> vs <team>   - Matchup classification (EXPLOITABLE/TOUGH/NEUTRAL)
+  /edge                         - Model vs market betting edges
+  /momentum                     - Hot/cold streaks
+
+Example responses:
+
+User: "who is the best team right now?"
+Assistant: Here are the current power rankings:
+/elo
+
+User: "how is curry doing this season?"
+Assistant: Let me pull up Curry\'s stats:
+/player Curry
+
+User: "who wins tonight between celtics and lakers?"
+Assistant: Let me run the prediction model:
+/predict Celtics Lakers
+
+User: "who has steph curry performed best against?"
+Assistant: I\'ll check his matchup patterns. Pick a specific team to analyze, or start with his overall stats:
+/player Curry
+/momentum
+"""
+
+
+def llm_ask(prompt):
+    """Send natural language query to LLM via OpenRouter."""
+    import requests
+
+    api_key = _get_api_key()
+    if not api_key:
+        return "No API key found. Set OPENROUTER_API_KEY in ~/.hermes/.env"
+
     try:
-        from tui import render_dashboard, get_tools_list, get_skills_list
-    except ImportError:
-        # Fallback if TUI not available
-        from banner import generate_banner
-        print(generate_banner())
-        print("Loading data...")
-    
-    # Show TUI dashboard
-    render_dashboard()
-    
-    print("Loading data...")
-    elo = load_elo()
-    teams = load_teams()
-    print(f"✓ Loaded {len(teams)} teams, {len(elo)} ELO ratings\n")
-    
-    while True:
+        resp = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://github.com/NousResearch/HermesAgent",
+                "X-Title": "NBA Analyst",
+            },
+            json={
+                "model": "anthropic/claude-3-haiku",
+                "messages": [
+                    {"role": "system", "content": NBA_TOOLS_CONTEXT},
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.3,
+                "max_tokens": 512,
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        return f"LLM error: {e}"
+
+
+def _extract_commands(text: str) -> tuple[str, list[str]]:
+    """
+    Parse LLM response into (prose, commands_to_execute).
+    Detects lines starting with /command and separates them from prose.
+    """
+    import re
+    valid_cmds = {
+        "elo", "games", "predict", "odds", "teams", "player", "team",
+        "compare", "trend", "top", "heatmap", "shot", "pattern",
+        "matchup", "edge", "momentum", "update",
+    }
+
+    prose_lines = []
+    commands = []
+
+    for line in text.split("\n"):
+        stripped = line.strip()
+        match = re.match(r"^/(\w+)", stripped)
+        if match and match.group(1).lower() in valid_cmds:
+            commands.append(stripped)
+        else:
+            prose_lines.append(line)
+
+    prose = "\n".join(prose_lines).strip()
+    return prose, commands
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN INPUT LOOP
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def build_prompt_message() -> str:
+    return f"\033[38;2;255;140;0m›\033[0m "
+
+
+def run_cli() -> None:
+    """Main CLI entry point."""
+    console = Console()
+    gif_path = find_gif_path()
+
+    # ── Phase 1: Animated startup (if GIF available) ──
+    if gif_path:
         try:
-            cmd = input(get_prompt()).strip()
-        except EOFError:
-            break
-        
-        if not cmd:
-            continue
-        
-        # Natural language query (no / prefix)
-        if not cmd.startswith('/'):
-            # Send to LLM for natural language processing
-            from tui import AMBER, RESET, ORANGE
-            print(f"\r{AMBER}Thinking...{RESET}")
-            sys.stdout.flush()
-            try:
-                from llm import ask
-                answer = ask(cmd)
-                print(f"\r{' ' * 50}\r{answer}\n")
-            except Exception as e:
-                print(f"Error: {e}")
-            print(f"{ORANGE}›{RESET} ", end="")
-            sys.stdout.flush()
-            continue
-        
-        # Command (starts with /)
-        cmd = cmd[1:]  # Remove leading /
-        
-        parts = cmd.split(' ', 1)
+            frames = load_gif_frames(gif_path, step=2)
+            if frames:
+                play_startup_animation(frames, duration_secs=3.5)
+        except Exception:
+            pass
+
+    # ── Phase 2: Static banner ──
+    build_welcome_banner(console, gif_path)
+
+    # ── Phase 3: Load data ──
+    console.print(
+        Text("  Loading data...", style=Style(color=Colors.DIM))
+    )
+    elo_data = load_elo()
+    teams_data = load_teams()
+    console.print(
+        Text(
+            f"  ✓ Loaded {len(teams_data)} teams, {len(elo_data)} ELO ratings\n",
+            style=Style(color=Colors.AMBER),
+        )
+    )
+
+    # ── Command dispatcher (reused for direct input AND LLM auto-execute) ──
+    def dispatch(cmd_str: str) -> str | None:
+        """
+        Execute a slash command string like '/player Curry' or '/elo'.
+        Returns 'quit' to signal exit, None otherwise.
+        """
+        nonlocal elo_data
+
+        if not cmd_str.startswith("/"):
+            return None
+        raw = cmd_str[1:]
+        parts = raw.split(" ", 1)
         cmd_name = parts[0].lower()
         arg = parts[1] if len(parts) > 1 else ""
-        
-        if cmd_name in ['quit', 'exit', 'q']:
-            from tui import ORANGE, RESET
-            print(f"{ORANGE}Goodbye!{RESET}")
-            break
-        elif cmd_name == 'help':
+
+        if cmd_name in ("quit", "exit", "q"):
+            return "quit"
+
+        elif cmd_name == "help":
             print(HELP)
-        elif cmd_name == 'clear':
-            import subprocess
-            subprocess.run(['clear'])
-            render_dashboard()
-        elif cmd_name == 'elo':
-            save_png = '--png' in arg
-            arg = arg.replace('--png', '').strip()
-            show_elo(teams, elo, save_png)
-        elif cmd_name == 'games':
-            show_games(teams)
-        elif cmd_name == 'predict':
-            show_predict(teams, elo, arg)
-        elif cmd_name == 'odds':
+        elif cmd_name == "clear":
+            os.system("clear" if os.name != "nt" else "cls")
+            build_welcome_banner(console, gif_path)
+        elif cmd_name == "elo":
+            save_png = "--png" in arg
+            arg = arg.replace("--png", "").strip()
+            show_elo(teams_data, elo_data, save_png)
+        elif cmd_name == "games":
+            show_games(teams_data)
+        elif cmd_name == "predict":
+            show_predict(teams_data, elo_data, arg)
+        elif cmd_name == "odds":
             show_odds()
-        elif cmd_name == 'teams':
-            show_teams(teams)
-        elif cmd_name == 'player':
-            save_png = '--png' in arg
+        elif cmd_name == "teams":
+            show_teams(teams_data)
+        elif cmd_name == "player":
+            save_png = "--png" in arg
             show_player(arg, save_png)
-        elif cmd_name == 'team':
-            save_png = '--png' in arg
+        elif cmd_name == "team":
+            save_png = "--png" in arg
             show_team(arg, save_png)
-        elif cmd_name == 'compare':
-            save_png = '--png' in arg
+        elif cmd_name == "compare":
+            save_png = "--png" in arg
             show_compare(arg, save_png)
-        elif cmd_name == 'trend':
-            save_png = '--png' in arg
+        elif cmd_name == "trend":
+            save_png = "--png" in arg
             show_trend(arg, save_png)
-        elif cmd_name == 'top':
-            save_png = '--png' in arg
+        elif cmd_name == "top":
+            save_png = "--png" in arg
             show_top(arg, save_png)
-        elif cmd_name == 'heatmap':
-            save_png = '--png' in arg
+        elif cmd_name == "heatmap":
+            save_png = "--png" in arg
             show_heatmap(save_png)
-        elif cmd_name == 'shot':
-            save_png = '--png' in arg
+        elif cmd_name == "shot":
+            save_png = "--png" in arg
             show_shot(arg, save_png)
-        elif cmd_name == 'pattern':
-            save_png = '--png' in arg
+        elif cmd_name == "pattern":
+            save_png = "--png" in arg
             show_pattern(arg, save_png)
-        elif cmd_name == 'matchup':
-            save_png = '--png' in arg
+        elif cmd_name == "matchup":
+            save_png = "--png" in arg
             show_matchup(arg, save_png)
-        elif cmd_name == 'edge':
-            save_png = '--png' in arg
+        elif cmd_name == "edge":
+            save_png = "--png" in arg
             show_edge(save_png)
-        elif cmd_name == 'momentum':
-            save_png = '--png' in arg
+        elif cmd_name == "momentum":
+            save_png = "--png" in arg
             show_momentum(save_png)
-        elif cmd_name == 'update':
+        elif cmd_name == "update":
             update_elo()
-            elo = load_elo()
+            elo_data = load_elo()
         else:
-            print(f"Unknown: /{cmd_name}")
-            print("Type /help for commands")
+            console.print(
+                Text(
+                    f"  Unknown: /{cmd_name} — Type /help for commands",
+                    style=Style(color="#FF4444"),
+                )
+            )
+        return None
+
+    # ── Set up prompt_toolkit ──
+    command_list = list(COMMANDS.keys())
+    completer = WordCompleter(command_list, sentence=True)
+    pt_style = PTStyle.from_dict({"prompt": "#FF8C00 bold"})
+    session: PromptSession = PromptSession(
+        completer=completer,
+        style=pt_style,
+        complete_while_typing=True,
+    )
+
+    # ── Input loop ──
+    while True:
+        try:
+            user_input = session.prompt(
+                ANSI(build_prompt_message()),
+            ).strip()
+
+            if not user_input:
+                continue
+
+            # ── Natural language (no / prefix) → LLM + auto-execute ──
+            if not user_input.startswith("/"):
+                console.print(
+                    Text("  Thinking...\n", style=Style(color=Colors.AMBER))
+                )
+                try:
+                    answer = llm_ask(user_input)
+                    prose, commands = _extract_commands(answer)
+
+                    # Print the LLM's prose explanation
+                    if prose:
+                        console.print(f"  {prose}\n")
+
+                    # Auto-execute any commands the LLM suggested
+                    if commands:
+                        console.print(
+                            Text(
+                                f"  ▸ Running {len(commands)} command{'s' if len(commands) > 1 else ''}...\n",
+                                style=Style(color=Colors.CYAN),
+                            )
+                        )
+                        for cmd in commands:
+                            console.print(
+                                Text(f"  {cmd}", style=Style(color=Colors.ORANGE, bold=True))
+                            )
+                            try:
+                                result = dispatch(cmd)
+                                if result == "quit":
+                                    return
+                            except Exception as e:
+                                console.print(
+                                    Text(f"  Error running {cmd}: {e}", style=Style(color="#FF4444"))
+                                )
+                            print()  # spacing between commands
+                    elif not prose:
+                        console.print(
+                            Text("  No response from LLM.", style=Style(color=Colors.DIM))
+                        )
+
+                except Exception as e:
+                    console.print(
+                        Text(f"  Error: {e}", style=Style(color="#FF4444"))
+                    )
+                continue
+
+            # ── Direct slash command ──
+            result = dispatch(user_input)
+            if result == "quit":
+                console.print(
+                    Text(
+                        "\n  👋 Game over. See you next tip-off.\n",
+                        style=Style(color=Colors.ORANGE),
+                    )
+                )
+                break
+
+        except KeyboardInterrupt:
+            console.print(
+                Text(
+                    "\n  ⏸  Press Ctrl+C again or type /quit to exit.",
+                    style=Style(color=Colors.DIM),
+                )
+            )
+        except EOFError:
+            break
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ENTRY POINT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def main():
+    """Entry point for the `nba` command."""
+    try:
+        run_cli()
+    except Exception as e:
+        sys.stdout.write("\033[?25h")  # Show cursor
+        console = Console()
+        console.print(f"\n[bold red]Fatal error:[/] {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
