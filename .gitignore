@@ -57,3 +57,9 @@ Thumbs.db
 # Alembic
 alembic/*/
 !alembic/
+
+# Environment variables (API keys, tokens, etc.)
+.env
+*.env
+.env.local
+.env.*
