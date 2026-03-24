@@ -63,8 +63,23 @@ def run_daily_update():
     """Run the daily update."""
     games_synced = 0
     
-    # 1. Update ELO ratings (skip games sync for now due to API issues)
-    print("\n[1/2] Updating ELO ratings...")
+    # 1. Try to sync new games via ESPN (more reliable than NBA API)
+    print("\n[1/3] Syncing new games (via ESPN)...")
+    try:
+        import sys
+        sys.path.insert(0, "/home/absent/HermesAnalysis")
+        from espn_sync import sync_recent_games
+        result = sync_recent_games("data/hermes.db", days_back=3)
+        games_synced = result.get("games_synced", 0)
+        if games_synced > 0:
+            print(f"   ✓ Synced {games_synced} new games")
+        else:
+            print("   ○ No new games to sync")
+    except Exception as e:
+        print(f"   ⚠ ESPN sync error: {e}")
+    
+    # 2. Update ELO ratings
+    print("\n[2/3] Updating ELO ratings...")
     try:
         # Simple ELO update - only process recent games
         INITIAL_ELO = 1500
@@ -146,9 +161,9 @@ def main():
     stats = get_db_stats()
     
     # Send Telegram notification
-    print("\n[2/2] Sending Telegram notification...")
+    print("\n[3/3] Sending Telegram notification...")
     
-    sync_status = "Game sync requires manual NBA API (rate limited)"
+    sync_status = f"{games_synced} games synced via ESPN" if games_synced > 0 else "No new games to sync"
     
     message = f"""🏀 <b>HermesAnalysis Daily Update</b>
 
