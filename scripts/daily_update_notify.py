@@ -20,8 +20,6 @@ os.chdir("/home/absent/HermesAnalysis")
 sys.path.insert(0, "/home/absent/HermesAnalysis/src")
 
 # Telegram config - set these as environment variables
-# export HERMES_TELEGRAM_BOT_TOKEN="your_bot_token_here"
-# export HERMES_TELEGRAM_CHAT_ID="your_chat_id_here"
 BOT_TOKEN = os.environ.get("HERMES_TELEGRAM_BOT_TOKEN", "CHANGEME_BOT_TOKEN")
 CHAT_ID = os.environ.get("HERMES_TELEGRAM_CHAT_ID", "CHANGEME_CHAT_ID")
 
@@ -65,70 +63,70 @@ def run_daily_update():
     """Run the daily update."""
     games_synced = 0
     
-    # Update ELO ratings
+    # 1. Update ELO ratings (skip games sync for now due to API issues)
     print("\n[1/2] Updating ELO ratings...")
     try:
-        from sportsprediction.data.models.base import create_db_engine
-        from sportsprediction.data.db import get_session
-        from sportsprediction.data.models import Game, BoxScore, Team
-        from sqlalchemy import func
-        import pandas as pd
-        import numpy as np
-        from collections import defaultdict
-        
+        # Simple ELO update - only process recent games
         INITIAL_ELO = 1500
         K_FACTOR = 32
         HOME_COURT = 100
         
-        engine = create_db_engine("data/hermes.db")
+        # Load existing ELO
+        elo_path = "data/elo_ratings.json"
+        if os.path.exists(elo_path):
+            with open(elo_path) as f:
+                ratings = json.load(f)
+        else:
+            ratings = {}
         
-        with get_session(engine) as session:
-            # Get all games
-            games = session.query(Game).order_by(Game.game_date).all()
-            
-            # Get current ELO if exists
-            elo_path = "data/elo_ratings.json"
-            if os.path.exists(elo_path):
-                with open(elo_path) as f:
-                    ratings = json.load(f)
-            else:
-                ratings = {}
-            
-            # Ensure all teams have ELO
-            teams = session.query(Team).all()
-            for team in teams:
-                if str(team.team_id) not in ratings:
-                    ratings[str(team.team_id)] = {"elo": INITIAL_ELO, "wins": 0, "losses": 0}
-            
-            # Process each game
-            for game in games:
-                if not game.home_score or not game.away_score:
-                    continue
-                
-                home_id = str(game.home_team_id)
-                away_id = str(game.away_team_id)
-                
-                home_elo = ratings.get(home_id, {}).get("elo", INITIAL_ELO)
-                away_elo = ratings.get(away_id, {}).get("elo", INITIAL_ELO)
-                
-                # Expected score
-                home_exp = 1 / (1 + 10 ** ((away_elo - home_elo - HOME_COURT) / 400))
-                
-                # Actual score
-                home_actual = 1 if game.home_score > game.away_score else 0
-                
-                # Update ELO
-                new_home_elo = home_elo + K_FACTOR * (home_actual - home_exp)
-                new_away_elo = away_elo + K_FACTOR * ((1 - home_actual) - (1 - home_exp))
-                
-                ratings[home_id] = {"elo": new_home_elo, "wins": ratings.get(home_id, {}).get("wins", 0) + home_actual, "losses": ratings.get(home_id, {}).get("losses", 0) + (1 - home_actual)}
-                ratings[away_id] = {"elo": new_away_elo, "wins": ratings.get(away_id, {}).get("wins", 0) + (1 - home_actual), "losses": ratings.get(away_id, {}).get("losses", 0) + home_actual}
-            
-            # Save ELO
-            with open(elo_path, "w") as f:
-                json.dump(ratings, f, indent=2)
+        # Initialize missing teams
+        conn = sqlite3.connect("data/hermes.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT home_team_id FROM games")
+        teams = set()
+        for row in cursor.fetchall():
+            teams.add(str(row[0]))
         
-        print(f"   ✓ Updated ELO for {len(ratings)} teams")
+        for team_id in teams:
+            if team_id not in ratings:
+                ratings[team_id] = {"elo": INITIAL_ELO, "wins": 0, "losses": 0}
+        
+        # Process recent games only (last 100 to save time)
+        cursor.execute("""
+            SELECT home_team_id, away_team_id, home_score, away_score 
+            FROM games 
+            WHERE home_score IS NOT NULL AND away_score IS NOT NULL
+            ORDER BY game_date DESC 
+            LIMIT 100
+        """)
+        recent_games = cursor.fetchall()
+        conn.close()
+        
+        # Update ELO for recent games
+        for home_id, away_id, home_score, away_score in recent_games:
+            home_id, away_id = str(home_id), str(away_id)
+            
+            home_elo = ratings.get(home_id, {}).get("elo", INITIAL_ELO)
+            away_elo = ratings.get(away_id, {}).get("elo", INITIAL_ELO)
+            
+            # Expected score
+            home_exp = 1 / (1 + 10 ** ((away_elo - home_elo - HOME_COURT) / 400))
+            
+            # Actual score
+            home_actual = 1 if home_score > away_score else 0
+            
+            # Update ELO
+            new_home_elo = home_elo + K_FACTOR * (home_actual - home_exp)
+            new_away_elo = away_elo + K_FACTOR * ((1 - home_actual) - (1 - home_exp))
+            
+            ratings[home_id] = {"elo": new_home_elo, "wins": ratings.get(home_id, {}).get("wins", 0) + home_actual, "losses": ratings.get(home_id, {}).get("losses", 0) + (1 - home_actual)}
+            ratings[away_id] = {"elo": new_away_elo, "wins": ratings.get(away_id, {}).get("wins", 0) + (1 - home_actual), "losses": ratings.get(away_id, {}).get("losses", 0) + home_actual}
+        
+        # Save ELO
+        with open(elo_path, "w") as f:
+            json.dump(ratings, f, indent=2)
+        
+        print(f"   ✓ Updated ELO for {len(ratings)} teams (recent games)")
     except Exception as e:
         print(f"   ⚠ ELO update error: {e}")
     
@@ -149,6 +147,9 @@ def main():
     
     # Send Telegram notification
     print("\n[2/2] Sending Telegram notification...")
+    
+    sync_status = "Game sync requires manual NBA API (rate limited)"
+    
     message = f"""🏀 <b>HermesAnalysis Daily Update</b>
 
 ✅ Update completed: {datetime.now().strftime('%Y-%m-%d %H:%M')}
@@ -158,6 +159,7 @@ def main():
 • Total games: {stats.get('total_games', 0):,}
 • Players: {stats.get('total_players', 0)}
 
+🔄 Sync: {sync_status}
 🤖 Model: V5 (64% accuracy)
 📅 Next update: Tomorrow 8am
 """
